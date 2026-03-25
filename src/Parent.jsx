@@ -1,7 +1,7 @@
 
 import Child from "./Child";
 
-function Parent() {
+export default function Parent() {
   const employees = [
     { name: "Arun", email: "arun@gmail.com", role: "Frontend Developer" },
     { name: "Priya", email: "priya@gmail.com", role: "UI/UX Designer" },
@@ -16,12 +16,15 @@ function Parent() {
       <h1 className="title"><u>✨ Employee Directory</u></h1>
 
       <div className="card-container">
-        {employees.map((emp, index) => (
-          <Child key={index} {...emp} />
-        ))}
+       <Child {...employees[0]}/>
+       <Child {...employees[1]}/>
+       <Child {...employees[2]}/>
+       <Child {...employees [3]}/>
+       <Child {...employees[4]}/>
+       <Child {...employees[5]}/>
+
+
       </div>
     </div>
   );
 }
-
-export default Parent;

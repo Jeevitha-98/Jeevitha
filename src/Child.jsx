@@ -1,5 +1,5 @@
 
-function Child({ name, email, role }) {
+export default function Child({ name, email, role }) {
   return (
     <div className="card">
       <h2>{name}</h2>
@@ -9,4 +9,3 @@ function Child({ name, email, role }) {
   );
 }
 
-export default Child;
