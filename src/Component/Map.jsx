@@ -14,7 +14,7 @@ export default function Map(){
           age: 21,
           phone:"9874563234"},
 
-              { name:"DhanaSekar",
+              { name:"Dhana Sekar",
           email:"Dhanasekar@gmail.com",
           city:"Coimbatore",
           age: 25,
