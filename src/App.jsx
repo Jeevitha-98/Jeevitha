@@ -1,11 +1,12 @@
-import "./App.css";
+
 import Parent from "./Parent";
+import Map from "./Component/Map"
 
 
 function App() {
   return (
     <div>
-      <Parent/>
+      <Map/>
     </div>
   );
 }
