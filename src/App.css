@@ -56,7 +56,7 @@
 }/*
 
 /* Status badge */
-body {
+/*body {
   font-family: Arial, sans-serif;
   background: linear-gradient(to right, #b8c6ca, #74b6f8);
 }
@@ -124,6 +124,6 @@ body {
 
 .inactive {
   background-color: #e74c3c;
-}
+}*/
 
 

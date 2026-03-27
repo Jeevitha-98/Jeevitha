@@ -1,9 +1,10 @@
-import "./App.css";
-import Parent from "./Parent";
-import Map from "./Component/Map"
-import Studentcard from "./Studentcard";
+//import "./App.css";
+//import Parent from "./Parent";
+//import Map from "./Component/Map"
+//import Studentcard from "./Studentcard";
+import RegistrationForm from "./Component/Registration form";
 
-export default function App() {
+/*export default function App() {
   const students=[
 {id: "EHC001", name:"Jeevitha", Course:"Data Analytics", isActive:true},
 {id: "EHC002", name:"Gokul", Course:"Back-End Developer", isActive:true},
@@ -25,8 +26,14 @@ export default function App() {
     </div>
     </div>
   );
+}*/
+
+export default function App() {
+  return (
+    <div>
+      <RegistrationForm />
+    </div>
+  );
 }
 
 
-
-   
