@@ -3,6 +3,7 @@
 //import Map from "./Component/Map"
 //import Studentcard from "./Studentcard";
 import RegistrationForm from "./Component/Registration form";
+import Stopwatch from "./Component/Stopwatch";
 
 /*export default function App() {
   const students=[
@@ -31,7 +32,7 @@ import RegistrationForm from "./Component/Registration form";
 export default function App() {
   return (
     <div>
-      <RegistrationForm />
+   <Stopwatch />
     </div>
   );
 }
