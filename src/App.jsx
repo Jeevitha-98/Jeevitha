@@ -5,6 +5,8 @@
 import RegistrationForm from "./Component/Registration form";
 import Stopwatch from "./Component/Stopwatch";
 import API from "./Component/API";
+import Minichatapp from "./Component/Minichatapp";
+
 
 /*export default function App() {
   const students=[
@@ -33,7 +35,7 @@ import API from "./Component/API";
 export default function App() {
   return (
     <div>
-      <API/>
+      <Minichatapp/>
     </div>
   );
 }
