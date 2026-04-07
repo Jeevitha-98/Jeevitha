@@ -12,6 +12,8 @@ import Profile from "./Component/Profile";
 
 
 
+
+
 /*export default function App() {
   const students=[
 {id: "EHC001", name:"Jeevitha", Course:"Data Analytics", isActive:true},
@@ -35,7 +37,7 @@ import Profile from "./Component/Profile";
     </div>
   );
 }*/
-
+/*
 export default function App() {
   const [theme, setTheme] = useState("light");
 
@@ -89,7 +91,19 @@ const buttonStyle = {
     </ThemeContext.Provider>
   );
 }
+  */
+
+
+import UseReducerForm from "./Component/UseReducerForm";
+
+
+export default function App() {
+  return(
+    <div>
+   <UseReducerForm/>
+    </div>
   
+  );
 
-
+}
 
