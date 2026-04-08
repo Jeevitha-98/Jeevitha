@@ -94,13 +94,14 @@ const buttonStyle = {
   */
 
 
-import UseReducerForm from "./Component/UseReducerForm";
+//import UseReducerForm from "./Component/UseReducerForm";
+import XOGame from "./Component/XOGame";
 
 
 export default function App() {
   return(
     <div>
-   <UseReducerForm/>
+   <XOGame/>
     </div>
   
   );
