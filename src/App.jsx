@@ -99,7 +99,7 @@ const buttonStyle = {
 
 
 
-
+/*
 import React from "react";
 
 
@@ -246,5 +246,111 @@ const styles = {
     borderRadius: "15px",
     textDecoration: "none",
     fontSize: "14px",
+  },
+};
+*/
+
+import React, { useEffect, useState } from "react";
+
+
+function UserDetails({ user }) {
+  return (
+    <div>
+      <h2>User Details</h2>
+      <p><b>Name:</b> {user.name}</p>
+      <p><b>Email:</b> {user.email}</p>
+      <p><b>Phone:</b> {user.phone}</p>
+      <p><b>Website:</b> {user.website}</p>
+
+      <h3>Address</h3>
+      <p>{user.address.street}</p>
+      <p>{user.address.suite}</p>
+      <p>{user.address.city}</p>
+      <p>{user.address.zipcode}</p>
+    </div>
+  );
+}
+
+
+export default function App() {
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then((res) => res.json())
+      .then((data) => setUsers(data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  return (
+    <div style={styles.container}>
+    
+      <div style={styles.list}>
+        <h2>Users</h2>
+        {users.map((user) => (
+          <p
+            key={user.id}
+            style={styles.userItem}
+            onClick={() => setSelectedUser(user)}
+          >
+            {user.name}
+          </p>
+        ))}
+      </div>
+
+    
+      <div style={styles.details}>
+        {selectedUser ? (
+          <UserDetails user={selectedUser} />
+        ) : (
+          <p>Select a user to see details</p>
+        )}
+      </div>
+    </div>
+  );
+}
+const styles = {
+  container: {
+    display: "flex",
+    gap: "30px",
+    padding: "30px",
+    background: "#0f172a",
+    minHeight: "100vh",
+    color: "#fff",
+    fontFamily: "Arial",
+  },
+
+  list: {
+    width: "35%",
+    background: "#1e293b",
+    padding: "20px",
+    borderRadius: "15px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
+  },
+
+  userItem: {
+    padding: "12px",
+    borderBottom: "1px solid #334155",
+    cursor: "pointer",
+    transition: "0.3s",
+  },
+
+  userItemHover: {
+    background: "#334155",
+  },
+
+  activeUser: {
+    background: "#2563eb",
+    borderRadius: "8px",
+  },
+
+  details: {
+    width: "65%",
+    background: "#1e293b",
+    padding: "25px",
+    borderRadius: "15px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
   },
 };
