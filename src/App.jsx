@@ -250,7 +250,7 @@ const styles = {
 };
 */
 
-import React, { useEffect, useState } from "react";
+/*import React, { useEffect, useState } from "react";
 
 
 function UserDetails({ user }) {
@@ -352,5 +352,202 @@ const styles = {
     padding: "25px",
     borderRadius: "15px",
     boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
+  },
+};*/
+
+import React, { useState } from "react";
+
+export default function App() {
+  const [users, setUsers] = useState([]);
+  const [form, setForm] = useState({ name: "", email: "" });
+  const [editIndex, setEditIndex] = useState(null);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = () => {
+    if (!form.name || !form.email) return;
+
+    if (editIndex !== null) {
+      const updatedUsers = [...users];
+      updatedUsers[editIndex] = form;
+      setUsers(updatedUsers);
+      setEditIndex(null);
+    } else {
+      setUsers([...users, form]);
+    }
+
+    setForm({ name: "", email: "" });
+  };
+
+  const handleEdit = (index) => {
+    setForm(users[index]);
+    setEditIndex(index);
+  };
+
+  const handleDelete = (index) => {
+    const filteredUsers = users.filter((_, i) => i !== index);
+    setUsers(filteredUsers);
+
+    if (editIndex === index) {
+      setForm({ name: "", email: "" });
+      setEditIndex(null);
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.heading}>CRUD Operations Table</h1>
+
+      
+      <div style={styles.form}>
+        <input
+          type="text"
+          name="name"
+          placeholder="Enter Name"
+          value={form.name}
+          onChange={handleChange}
+          style={styles.input}
+        />
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter Email"
+          value={form.email}
+          onChange={handleChange}
+          style={styles.input}
+        />
+
+        <button onClick={handleSubmit} style={styles.button}>
+          {editIndex !== null ? "Update" : "Add"}
+        </button>
+      </div>
+
+      
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>Name</th>
+            <th style={styles.th}>Email</th>
+            <th style={styles.th}>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {users.length === 0 ? (
+            <tr>
+              <td colSpan="3" style={styles.noData}>
+                No Data Available
+              </td>
+            </tr>
+          ) : (
+            users.map((user, index) => (
+              <tr key={index}>
+                <td style={styles.td}>{user.name}</td>
+                <td style={styles.td}>{user.email}</td>
+                <td style={styles.td}>
+                  <button
+                    onClick={() => handleEdit(index)}
+                    style={styles.editBtn}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(index)}
+                    style={styles.deleteBtn}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+
+const styles = {
+  container: {
+    padding: "30px",
+    fontFamily: "Arial",
+    background: "#0f172a",
+    minHeight: "100vh",
+    color: "#fff",
+  },
+
+  heading: {
+    textAlign: "center",
+    marginBottom: "20px",
+  },
+
+  form: {
+    marginBottom: "20px",
+    display: "flex",
+    gap: "10px",
+  },
+
+  input: {
+    padding: "10px",
+    borderRadius: "6px",
+    border: "none",
+    outline: "none",
+    width: "200px",
+  },
+
+  button: {
+    padding: "10px 15px",
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    background: "#1e293b",
+  },
+
+  th: {
+    padding: "14px",
+    borderBottom: "2px solid #334155",
+    textAlign: "center", 
+  },
+
+  td: {
+    padding: "14px",
+    borderBottom: "1px solid #334155",
+    textAlign: "center", 
+  },
+
+  editBtn: {
+    marginRight: "8px",
+    padding: "6px 12px",
+    background: "#22c55e",
+    border: "none",
+    color: "#fff",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+
+  deleteBtn: {
+    padding: "6px 12px",
+    background: "#ef4444",
+    border: "none",
+    color: "#fff",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+
+  noData: {
+    textAlign: "center",
+    padding: "20px",
   },
 };
