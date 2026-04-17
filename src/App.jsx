@@ -355,7 +355,7 @@ const styles = {
   },
 };*/
 
-import React, { useState } from "react";
+/*import React, { useState } from "react";
 
 export default function App() {
   const [users, setUsers] = useState([]);
@@ -550,4 +550,387 @@ const styles = {
     textAlign: "center",
     padding: "20px",
   },
+};*/
+import React, { useReducer, createContext, useContext } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
+import About from "./Component/About"; 
+import Services from "./Component/Services";
+import Contact from "./Component/Contact";
+import Profile1 from "./Component/Profile1"; 
+
+/* ================= CONTEXT ================= */
+export const AppContext = createContext();
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "INCREMENT":
+      return { count: state.count + 1 };
+    case "RESET":
+      return { count: 0 };
+    default:
+      return state;
+  }
 };
+
+/* ================= HEADER ================= */
+const Header = () => (
+  <header style={styles.header}>
+    <h2 style={{ color: "#fff", margin: 0 }}>YazhBakes</h2>
+    <nav style={styles.nav}>
+      <Link style={styles.link} to="/">Home</Link>
+      <Link style={styles.link} to="/about">About</Link>
+      <Link style={styles.link} to="/services">Services</Link>
+      <Link style={styles.link} to="/contact">Contact</Link>
+      <Link style={styles.link} to="/profile">Profile</Link>
+    </nav>
+  </header>
+);
+
+/* ================= HOME ================= */
+const Home = () => {
+  const navigate = useNavigate();
+  const { dispatch } = useContext(AppContext);
+
+  const handleOrder = () => {
+    dispatch({ type: "INCREMENT" });
+    navigate("/profile");
+  };
+
+  return (
+    <div>
+      {/* BANNER */}
+      <div style={styles.banner}>
+        <div style={styles.overlay}></div>
+        <h1 style={styles.bannerText}>Welcome to YazhBakes 🍰</h1>
+        <p style={styles.bannerSub}>
+          Freshly baked happiness delivered daily with love and care.  
+          Experience premium taste crafted with quality ingredients.  
+          Every bite is designed to create sweet memories.  
+          Your celebration starts with our creations.
+        </p>
+        <button style={styles.orderBtn} onClick={handleOrder}>
+          Order Now
+        </button>
+      </div>
+
+      {/* SERVICES */}
+      <div style={styles.container}>
+        <h2>Our Services</h2>
+        <p style={styles.subText}>
+          We provide a wide range of bakery services tailored for every occasion.  
+          From small celebrations to grand events, we handle everything.  
+          Our team ensures quality, taste, and creative presentation.  
+          Customer satisfaction is always our top priority.
+        </p>
+
+        <div style={styles.cardContainer}>
+          {["Custom Cakes","Wedding Cakes","Cupcakes","Cookies","Party Orders","Delivery"].map((s, i) => (
+            <div key={i} style={styles.serviceCard}>
+              <h3 style={{ marginBottom: "10px" }}>{s}</h3>
+              <div style={styles.cardContent}>
+                <p>High quality ingredients used.</p>
+                <p>Creative and unique designs.</p>
+                <p>Perfect for every occasion.</p>
+                <p>Customer satisfaction guaranteed.</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* WHO WE ARE */}
+      <div style={styles.aboutSection}>
+        <div style={styles.aboutText}>
+          <h2>Who We Are</h2>
+          <p>
+            YazhBakes is built on passion, creativity, and love for baking.  
+            We believe every celebration deserves something special and sweet.  
+            Our team focuses on quality ingredients and unique designs.  
+            We aim to deliver happiness through every bite we create.
+          </p>
+        </div>
+        <img
+          src="https://images.unsplash.com/photo-1509440159596-0249088772ff"
+          style={styles.aboutImg}
+        />
+      </div>
+
+      {/* TESTIMONIALS */}
+      <div style={styles.testimonialSection}>
+        <h2 style={{ marginBottom: "25px" }}>Testimonials</h2>
+
+        <div style={styles.testimonialWrapper}>
+          <div className="scrollTrack" style={styles.testimonialTrack}>
+            {[
+              ["Amazing taste and design!", "Priya"],
+              ["Best bakery service!", "Arun"],
+              ["Loved every bite!", "Meena"],
+              ["Highly recommended!", "Karthik"]
+            ].map((t, i) => (
+              <div key={i} style={styles.testimonialCard}>
+                <p>"{t[0]}"</p>
+                <h4>- {t[1]}</h4>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+/* ================= FOOTER ================= */
+const Footer = () => (
+  <footer style={styles.footer}>
+    <h3>YazhBakes</h3>
+    <p>Delivering happiness through baking.</p>
+    <div style={styles.iconRow}>
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" style={styles.icon}/>
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook.png" style={styles.icon}/>
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/twitter.png" style={styles.icon}/>
+    </div>
+    <p>📍 Coimbatore | 📞 9876543210 | 📧 yazhbakes@gmail.com</p>
+     <p style={{ marginTop: "10px", fontSize: "14px", opacity: 0.7 }}>
+    © {new Date().getFullYear()} YazhBakes. All Rights Reserved.
+  </p>
+  </footer>
+);
+
+/* ================= APP ================= */
+const App = () => {
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
+
+  return (
+    <AppContext.Provider value={{ state, dispatch }}>
+      <Router>
+        <Header />
+
+        <div style={{ marginTop: "60px" }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About styles={styles} />} /> 
+            <Route path="/services" element={<Services styles={styles} />} /> 
+            <Route path="/contact" element={<Contact styles={styles} />} />
+            <Route path="/profile" element={<Profile1 styles={styles} />} />
+          </Routes>
+        </div>
+
+        <Footer />
+      </Router>
+
+      <style>
+        {`
+        .scrollTrack {
+          display: flex;
+          animation: scrollLeft 12s linear infinite;
+        }
+        .scrollTrack:hover {
+          animation-play-state: paused;
+        }
+        @keyframes scrollLeft {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        `}
+      </style>
+    </AppContext.Provider>
+  );
+};
+
+/* ================= STYLES ================= */
+const styles = {
+  body: {
+  margin: 0,
+  padding: 0,
+  boxSizing: "border-box",
+},
+
+  header: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "15px 20px",
+    background: "#222",
+    zIndex: 1000,
+    boxSizing: "border-box"
+  },
+
+  nav: {
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap"
+  },
+
+  link: {
+    color: "#fff",
+    marginLeft: "15px",
+    textDecoration: "none",
+    whiteSpace: "nowrap"
+  },
+
+  banner: {
+    height: "320px",
+    background: "url('https://images.unsplash.com/photo-1551024601-bec78aea704b') center/cover",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "15px",
+    position: "relative"
+  },
+
+  overlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.5)"
+  },
+
+  bannerText: { color: "#fff", zIndex: 1 },
+
+  bannerSub: {
+    color: "#fff",
+    zIndex: 1,
+    maxWidth: "600px",
+    textAlign: "center"
+  },
+
+  orderBtn: {
+    zIndex: 1,
+    padding: "12px 25px",
+    background: "#ff4d6d",
+    color: "#fff",
+    border: "none",
+    cursor: "pointer"
+  },
+
+  container: { padding: "40px", textAlign: "center" },
+
+  subText: { maxWidth: "700px", margin: "10px auto 30px" },
+
+  cardContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: "25px"
+  },
+
+  serviceCard: {
+    background: "#333",
+    color: "#fff",
+    padding: "20px",
+    width: "250px",
+    borderRadius: "10px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: "230px",
+    textAlign: "center"
+  },
+
+  cardContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "5px"
+  },
+
+  aboutSection: {
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    padding: "40px",
+    flexWrap: "wrap"
+  },
+
+  aboutText: { maxWidth: "500px" },
+
+  aboutImg: { width: "300px", borderRadius: "10px" },
+
+  testimonialSection: {
+    background: "#111",
+    color: "#fff",
+    padding: "40px",
+    textAlign: "center"
+  },
+
+  testimonialWrapper: { overflow: "hidden" },
+
+  testimonialTrack: { display: "flex", gap: "20px" },
+
+  testimonialCard: {
+    background: "#fff",
+    color: "#000",
+    padding: "20px",
+    borderRadius: "50px",
+    minWidth: "250px"
+  },
+
+  footer: {
+    background: "#111",
+    color: "#fff",
+    padding: "30px",
+    textAlign: "center"
+  },
+
+  iconRow: {
+    margin: "15px 0"
+  },
+
+  icon: {
+    width: "30px",
+    margin: "0 10px",
+    cursor: "pointer"
+  },
+
+  button: {
+    padding: "10px",
+    margin: "5px",
+    background: "#333",
+    color: "#fff"
+  },
+
+ 
+  sectionBox: {
+    background: "#222",
+    color: "#fff",
+    padding: "25px",
+    borderRadius: "10px",
+    margin: "20px auto",
+    maxWidth: "900px",
+    textAlign: "left"
+  },
+
+  flexRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: "20px"
+  },
+
+  infoCard: {
+    background: "#333",
+    color: "#fff",
+    padding: "20px",
+    borderRadius: "10px",
+    width: "300px"
+  },
+
+  list: {
+    paddingLeft: "20px",
+    lineHeight: "1.8"
+  },
+
+  timeline: {
+    paddingLeft: "20px",
+    lineHeight: "1.8"
+  }
+};
+
+export default App;
