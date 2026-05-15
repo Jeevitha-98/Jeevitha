@@ -794,12 +794,12 @@
    CARDS
 ========================= */
 
-.food-cards{
-  display:flex;
-  justify-content:center;
-  gap:30px;
-  flex-wrap:wrap;
-  overflow: visible;
+.food-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  text-align: center; 
 }
 
 /* CARD */
