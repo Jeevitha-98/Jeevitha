@@ -1185,16 +1185,7 @@
     font-size: 16px;
   }
 
-  .food-card {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .food-card img {
-    height: 180px;
-    width: 100%;
-  }
-}
+  
   /* FLOATING IMAGES - HIDE ON MOBILE */
   .floating-food {
     display: none;
