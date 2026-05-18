@@ -551,7 +551,8 @@ const styles = {
     padding: "20px",
   },
 };*/
-import React, { useReducer, createContext, useContext } from "react";
+
+/*import React, { useReducer, createContext, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import About from "./Component/About"; 
 import Services from "./Component/Services";
@@ -559,7 +560,7 @@ import Contact from "./Component/Contact";
 import Profile1 from "./Component/Profile1"; 
 
 /* ================= CONTEXT ================= */
-export const AppContext = createContext();
+/*export const AppContext = createContext();
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -573,7 +574,7 @@ const reducer = (state, action) => {
 };
 
 /* ================= HEADER ================= */
-const Header = () => (
+/*const Header = () => (
   <header style={styles.header}>
     <h2 style={{ color: "#fff", margin: 0 }}>YazhBakes</h2>
     <nav style={styles.nav}>
@@ -587,7 +588,7 @@ const Header = () => (
 );
 
 /* ================= HOME ================= */
-const Home = () => {
+/*const Home = () => {
   const navigate = useNavigate();
   const { dispatch } = useContext(AppContext);
 
@@ -598,8 +599,8 @@ const Home = () => {
 
   return (
     <div>
-      {/* BANNER */}
-      <div style={styles.banner}>
+      {/* BANNER */
+      /*<div style={styles.banner}>
         <div style={styles.overlay}></div>
         <h1 style={styles.bannerText}>Welcome to YazhBakes 🍰</h1>
         <p style={styles.bannerSub}>
@@ -613,8 +614,8 @@ const Home = () => {
         </button>
       </div>
 
-      {/* SERVICES */}
-      <div style={styles.container}>
+      {/* SERVICES */
+      /*<div style={styles.container}>
         <h2>Our Services</h2>
         <p style={styles.subText}>
           We provide a wide range of bakery services tailored for every occasion.  
@@ -638,8 +639,8 @@ const Home = () => {
         </div>
       </div>
 
-      {/* WHO WE ARE */}
-      <div style={styles.aboutSection}>
+      {/* WHO WE ARE */
+      /*<div style={styles.aboutSection}>
         <div style={styles.aboutText}>
           <h2>Who We Are</h2>
           <p>
@@ -655,8 +656,8 @@ const Home = () => {
         />
       </div>
 
-      {/* TESTIMONIALS */}
-      <div style={styles.testimonialSection}>
+      {/* TESTIMONIALS */
+     /* <div style={styles.testimonialSection}>
         <h2 style={{ marginBottom: "25px" }}>Testimonials</h2>
 
         <div style={styles.testimonialWrapper}>
@@ -682,7 +683,7 @@ const Home = () => {
 
 
 /* ================= FOOTER ================= */
-const Footer = () => (
+/*const Footer = () => (
   <footer style={styles.footer}>
     <h3>YazhBakes</h3>
     <p>Delivering happiness through baking.</p>
@@ -696,10 +697,10 @@ const Footer = () => (
     © {new Date().getFullYear()} YazhBakes. All Rights Reserved.
   </p>
   </footer>
-);
+);*/
 
 /* ================= APP ================= */
-const App = () => {
+/*const App = () => {
   const [state, dispatch] = useReducer(reducer, { count: 0 });
 
   return (
@@ -738,9 +739,10 @@ const App = () => {
     </AppContext.Provider>
   );
 };
+*/
 
 /* ================= STYLES ================= */
-const styles = {
+/*const styles = {
   body: {
   margin: 0,
   padding: 0,
@@ -932,5 +934,28 @@ const styles = {
     lineHeight: "1.8"
   }
 };
+
+export default App; */
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Login from "./Dashboard/Login";
+import Supplier from "./Dashboard/Supplier";
+import Vendor from "./Dashboard/Vendor";
+import Admin from "./Dashboard/Admin";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+
+        <Route path="/supplier/dashboard" element={<Supplier />} />
+        <Route path="/vendor/dashboard" element={<Vendor />} />
+        <Route path="/admin/dashboard" element={<Admin />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
 export default App;
