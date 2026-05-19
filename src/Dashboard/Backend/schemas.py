@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class RegisterSchema(BaseModel):
     mobile: str
     location: str

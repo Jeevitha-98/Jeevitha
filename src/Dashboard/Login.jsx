@@ -8,11 +8,11 @@ import API from "../Services/api";
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  // ================= LOGIN STATES =================
+ 
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
 
-  // ================= REGISTER STATES =================
+ 
   const [showRegister, setShowRegister] = useState(false);
 
   const [registerMobile, setRegisterMobile] = useState("");
@@ -21,13 +21,11 @@ export default function LoginPage() {
   const [businessType, setBusinessType] = useState("");
   const [role, setRole] = useState("");
 
-  // ================= COMMON STATES =================
+  
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // =================================================
-  // LOGIN
-  // =================================================
+ 
   const handleLogin = async () => {
     setError("");
 
@@ -51,12 +49,12 @@ export default function LoginPage() {
 
       const data = response.data;
 
-// store session
+
 localStorage.setItem("token", data.token);
 localStorage.setItem("role", data.role);
 localStorage.setItem("user_id", data.user_id);
 
-// role-based redirect
+
 if (data.role === "supplier") {
   navigate("/supplier/dashboard");
 } 
@@ -81,9 +79,7 @@ else {
     }
   };
 
-  // =================================================
-  // REGISTER
-  // =================================================
+
   const handleRegister = async (e) => {
     if (e) e.preventDefault();
     setError("");
@@ -116,10 +112,10 @@ else {
 
       const data = response.data;
 
-      // IMPORTANT: backend must return user_id like SUP001 / VEN001
+      
       alert(`Account created successfully\nUser ID: ${data.user_id}`);
 
-      // reset form
+    
       setRegisterMobile("");
       setLocation("");
       setBusinessName("");
@@ -143,7 +139,7 @@ else {
   return (
     <div className="login-page">
 
-      {/* LEFT */}
+    
       <div className="login-container">
         <div className="login-left">
           <h1 className="login-title">
@@ -155,12 +151,12 @@ else {
         </div>
       </div>
 
-      {/* RIGHT */}
+     
       <div className="login-right">
 
         <div className="login-form">
 
-          {/* LOGIN */}
+         
           {!showRegister && (
             <>
               <h2>Login</h2>
@@ -197,7 +193,7 @@ else {
             </>
           )}
 
-          {/* REGISTER */}
+         
           {showRegister && (
             <>
               <h2>Register</h2>
@@ -256,7 +252,7 @@ else {
             </>
           )}
 
-          {/* TOGGLE */}
+          
           <div className="login-link">
             {!showRegister ? (
               <p>

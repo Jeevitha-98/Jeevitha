@@ -937,8 +937,9 @@ const reducer = (state, action) => {
 
 export default App; */
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+// ✅ FIXED PATHS (IMPORTANT)
 import Login from "./Dashboard/Login";
 import Supplier from "./Dashboard/Supplier";
 import Vendor from "./Dashboard/Vendor";
@@ -948,11 +949,18 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
 
+        {/* default route */}
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        {/* login */}
+        <Route path="/login" element={<Login />} />
+
+        {/* dashboards */}
         <Route path="/supplier/dashboard" element={<Supplier />} />
         <Route path="/vendor/dashboard" element={<Vendor />} />
         <Route path="/admin/dashboard" element={<Admin />} />
+
       </Routes>
     </BrowserRouter>
   );
