@@ -1,5 +1,5 @@
 
-import Child from "./Child";
+import Child from "../src/Child";
 
 export default function Parent() {
   const employees = [
