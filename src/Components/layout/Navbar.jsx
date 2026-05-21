@@ -5,13 +5,13 @@ import profileIconImage from "../../Assests/Profileicon Image.jpg";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  
-  // Extracting the live persistent activity stream array alongside user profile states
   const { profile, systemActivities } = useInventory();
   
   const [showNotifications, setShowNotifications] = useState(false);
+  const [localLogs, setLocalLogs] = useState([]);
   const notificationRef = useRef(null);
 
+  // Close notifications dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
@@ -22,23 +22,31 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // REAL-TIME AUTO SYNC FILTER: Read persistent local records to prevent folder file path decoupling issues
+  useEffect(() => {
+    const fetchStorageLogs = () => {
+      const saved = localStorage.getItem("supplier_activity_logs");
+      if (saved) {
+        setLocalLogs(JSON.parse(saved).slice(0, 4));
+      } else if (systemActivities) {
+        setLocalLogs(systemActivities.slice(0, 4));
+      }
+    };
+
+    fetchStorageLogs();
+    
+    // Auto-update notification bell drop-down data matrix values when menu dropdown gets clicked open
+    if (showNotifications) {
+      fetchStorageLogs();
+    }
+  }, [showNotifications, systemActivities]);
+
   const goProfile = () => {
     navigate("/supplier/dashboard/profile");
   };
 
-  // Maps the persistent systemActivities to the notification dropdown layout format
-  const recentActivities = (systemActivities || [])
-    .slice(0, 4) // Limit drop-down viewing viewport scope to the top 4 log lines
-    .map((act) => ({
-      id: act.id,
-      text: act.text,
-      time: act.time,
-      badge: act.badge,
-      urgent: act.urgent,
-    }));
-
-  // Automatically count how many urgent/pending events are currently unresolved
-  const unreadCount = recentActivities.filter(a => a.urgent).length;
+  // Automatically count how many pending critical actions exist inside the current log lines stream
+  const unreadCount = localLogs.filter(a => a && a.urgent).length;
 
   const containerStyle = {
     height: "64px",
@@ -152,7 +160,7 @@ export default function Navbar() {
     <div style={containerStyle}>
       <div style={actionGroupStyle}>
         
-        {/* NOTIFICATION BELL ICON CARD CONTROLLER */}
+        {/* NOTIFICATION BELL BLOCK BUTTON */}
         <div style={notificationWrapperStyle} ref={notificationRef}>
           <button 
             style={iconContainerStyle}
@@ -168,7 +176,7 @@ export default function Navbar() {
             {unreadCount > 0 && <span style={notificationDotStyle} />}
           </button>
 
-          {/* DYNAMIC DROPDOWN MATRIX OVERLAY */}
+          {/* DYNAMIC POP-OVER MULTI-ATTRIBUTE DROPDOWN SELECTION WINDOW */}
           <div style={dropdownStyle}>
             <div style={dropdownHeaderStyle}>
               <span style={{ fontSize: "13px", fontWeight: "600", color: "#0f172a" }}>Recent Activities</span>
@@ -180,12 +188,12 @@ export default function Navbar() {
             </div>
             
             <div style={{ maxHeight: "280px", overflowY: "auto" }}>
-              {recentActivities.length === 0 ? (
+              {localLogs.length === 0 ? (
                 <div style={{ padding: "24px", textAlign: "center", color: "#94a3b8", fontSize: "13px" }}>
                   No recent activities recorded.
                 </div>
               ) : (
-                recentActivities.map((activity) => (
+                localLogs.map((activity) => activity && (
                   <div 
                     key={activity.id} 
                     style={{ 
@@ -212,7 +220,7 @@ export default function Navbar() {
                         borderRadius: "4px",
                         textTransform: "uppercase"
                       }}>
-                        {activity.badge}
+                        {activity.badge || "System"}
                       </span>
                       <span style={{ fontSize: "11px", color: "#94a3b8", fontFamily: "monospace" }}>
                         {activity.time}
@@ -225,7 +233,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* METADATA RENDER ENGINE CHIP */}
+        {/* METADATA BLOCK */}
         <div style={userMetaDataStyle}>
           <h4 style={businessNameStyle}>
             {profile?.business_name || "Loading Supplier..."}
@@ -235,7 +243,7 @@ export default function Navbar() {
           </p>
         </div>
 
-        {/* IMAGE PROFILE BADGE ICON CHIP */}
+        {/* IMAGE PROFILE BADGE BUTTON */}
         <img
           src={profileIconImage}
           onClick={goProfile}
