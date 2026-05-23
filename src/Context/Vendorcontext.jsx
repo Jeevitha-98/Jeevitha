@@ -57,7 +57,7 @@ export function VendorProvider({ children }) {
 
       const allRequests = Array.isArray(requestsData) ? requestsData : [];
       setPendingRequests(allRequests.filter(r => r?.status?.toLowerCase() === "pending"));
-      setAcceptedRequests(allRequests.filter(r => r?.status?.toLowerCase() === "accepted"));
+      setAcceptedRequests(allRequests.filter(r => r?.status?.toLowerCase() === "accepted" || r?.status?.toLowerCase() === "approved"));
 
     } catch (err) {
       console.error("Failed to sync vendor context across workflow menus:", err);
@@ -79,7 +79,7 @@ export function VendorProvider({ children }) {
   const createProductRequest = async (requestPayload) => {
     try {
       setLoading(true);
-      const productName = requestPayload.product || "Inventory Item";
+      const productName = requestPayload.product_name || requestPayload.product || "Inventory Item";
       const quantity = requestPayload.quantity || "0";
 
       await vendorService.requestProduct(requestPayload);

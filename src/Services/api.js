@@ -13,6 +13,12 @@ API.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // SAFETY CATCHER: Intercept and force-convert any uppercase /Vendor/ path strings to lowercase /vendor/
+    if (config.url && config.url.includes("/Vendor/")) {
+      config.url = config.url.replace("/Vendor/", "/vendor/");
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -30,4 +36,3 @@ API.interceptors.response.use(
 );
 
 export default API;
-

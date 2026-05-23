@@ -6,7 +6,14 @@ import Button from "../../components/ui/Button";
 import { useVendor } from "../../Context/Vendorcontext";
 
 export default function RequestProduct() {
-  const { availableProducts, pendingRequests, acceptedRequests, createProductRequest, refreshVendorData, loading } = useVendor();
+  const {
+    availableProducts,
+    pendingRequests,
+    acceptedRequests,
+    createProductRequest,
+    refreshVendorData,
+    loading,
+  } = useVendor();
 
   const [statusFilter, setStatusFilter] = useState("All");
   const [isOpen, setIsOpen] = useState(false);
@@ -21,8 +28,14 @@ export default function RequestProduct() {
   }, []);
 
   const getUnifiedRequestsList = () => {
-    const pendingList = (pendingRequests || []).map(r => ({ ...r, status: "Pending" }));
-    const acceptedList = (acceptedRequests || []).map(r => ({ ...r, status: "Accepted" }));
+    const pendingList = (pendingRequests || []).map((r) => ({
+      ...r,
+      status: "Pending",
+    }));
+    const acceptedList = (acceptedRequests || []).map((r) => ({
+      ...r,
+      status: "Accepted",
+    }));
     return [...pendingList, ...acceptedList];
   };
 
@@ -45,8 +58,9 @@ export default function RequestProduct() {
     e.preventDefault();
 
     const targetProduct = availableProducts.find(
-      p => String(p.id) === String(selectedProductId)
+      (p) => String(p.id) === String(selectedProductId)
     );
+
     if (!targetProduct) return;
 
     setActionLoading(true);
@@ -55,7 +69,7 @@ export default function RequestProduct() {
       supplier_id: targetProduct.supplier_id,
       product_name: targetProduct.name,
       quantity: Number(requestQuantity),
-      notes: notes ? notes.trim() : ""
+      notes: notes ? notes.trim() : "",
     };
 
     const result = await createProductRequest(payload);
@@ -93,7 +107,7 @@ export default function RequestProduct() {
   return (
     <PageContainer>
 
-      {/* HEADER (UNCHANGED TEXT PRESERVED) */}
+      {/* HEADER */}
       <div style={{
         marginBottom: "20px",
         padding: "18px",
@@ -104,7 +118,7 @@ export default function RequestProduct() {
         justifyContent: "space-between",
         alignItems: "center"
       }}>
-        <div>
+        <div style={{ textAlign: "left" }}>
           <h2 style={{ margin: 0, fontSize: "22px", color: "#0f172a" }}>
             Product Procurement Requests
           </h2>
@@ -128,6 +142,7 @@ export default function RequestProduct() {
         <div style={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           padding: "12px 16px",
           borderBottom: "1px solid #e2e8f0"
         }}>
@@ -155,114 +170,206 @@ export default function RequestProduct() {
         </div>
 
         {/* TABLE */}
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#f8fafc" }}>
-              <th style={th}>Product</th>
-              <th style={th}>Quantity</th>
-              <th style={th}>Supplier</th>
-              <th style={th}>Message / Note</th>
-              <th style={th}>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredRequests.length > 0 ? filteredRequests.map((req, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                <td style={tdBold}>{req.product || req.product_name}</td>
-                <td style={td}>{req.quantity}</td>
-                <td style={td}>{req.supplier_name || req.supplier_id}</td>
-
-                {/* MESSAGE COLUMN (KEPT + IMPROVED) */}
-                <td style={{ ...td, color: "#64748b" }}>
-                  {req.notes || req.message || "—"}
-                </td>
-
-                <td style={td}>
-                  <span style={{
-                    padding: "5px 10px",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    ...getStatusStyle(req.status)
-                  }}>
-                    {req.status}
-                  </span>
-                </td>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc" }}>
+                <th style={th}>Product</th>
+                <th style={th}>Quantity</th>
+                <th style={th}>Supplier</th>
+                <th style={th}>Message / Note</th>
+                <th style={th}>Status</th>
               </tr>
-            )) : (
-              <tr>
-                <td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
-                  No procurement records matching selection found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {filteredRequests.length > 0 ? filteredRequests.map((req, i) => {
+
+                const targetProductName = req.product || req.product_name || "";
+
+                const matchedProduct = (availableProducts || []).find(
+                  (p) =>
+                    (p.name || "").toLowerCase() === targetProductName.toLowerCase()
+                );
+
+                const resolvedImage =
+                  req.product_image ||
+                  req.image ||
+                  req.image_url ||
+                  matchedProduct?.image ||
+                  matchedProduct?.image_url;
+
+                return (
+                  <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={tdBold}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        {resolvedImage ? (
+                          <img
+                            src={resolvedImage}
+                            alt={targetProductName}
+                            style={{
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "6px",
+                              objectFit: "cover",
+                              border: "1px solid #e2e8f0"
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "6px",
+                            backgroundColor: "#f1f5f9",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            border: "1px solid #e2e8f0",
+                            color: "#94a3b8",
+                            fontSize: "11px",
+                            fontWeight: "500"
+                          }}>
+                            No Img
+                          </div>
+                        )}
+                        <span>{targetProductName}</span>
+                      </div>
+                    </td>
+
+                    <td style={td}>{req.quantity}</td>
+                    <td style={td}>{req.supplier_name || req.supplier_id || "Global Wholesaler"}</td>
+                    <td style={{ ...td, color: "#64748b" }}>
+                      {req.notes || req.message || "—"}
+                    </td>
+
+                    <td style={td}>
+                      <span style={{
+                        padding: "5px 10px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        ...getStatusStyle(req.status)
+                      }}>
+                        {req.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              }) : (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                    No procurement records matching selection found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* MODAL (UNCHANGED LOGIC) */}
+      {/* MODAL */}
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Request Product Stock">
-        <form style={{ display: "flex", flexDirection: "column", gap: "12px" }} onSubmit={handleSubmitRequest}>
+        <form
+          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          onSubmit={handleSubmitRequest}
+        >
+          <div style={{ display: "flex", flexDirection: "row", gap: "16px", width: "100%", alignItems: "flex-end" }}>
 
-          <label>Select Product *</label>
-          <select
-            value={selectedProductId}
-            onChange={(e) => setSelectedProductId(e.target.value)}
-            style={{ padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-          >
-            <option value="">Choose product</option>
-            {availableProducts.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left", flex: "3" }}>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                Select Product *
+              </label>
 
-          <label>Quantity *</label>
-          <Input type="number" min="1" value={requestQuantity}
-            onChange={(e) => setRequestQuantity(e.target.value)} />
+              <select
+                required
+                value={selectedProductId}
+                onChange={(e) => setSelectedProductId(e.target.value)}
+                style={{
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "14px",
+                  width: "100%",
+                  height: "40px"
+                }}
+              >
+                <option value="">Choose product</option>
+                {(availableProducts || []).map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <label>Message / Note</label>
-          <textarea
-            rows="3"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            style={{ padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-          />
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left", flex: "1" }}>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                Quantity *
+              </label>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-            <Button type="button" onClick={() => setIsOpen(false)}>
+              <Input
+                type="number"
+                min="1"
+                required
+                value={requestQuantity}
+                onChange={(e) => setRequestQuantity(e.target.value)}
+              />
+            </div>
+
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left" }}>
+            <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+              Message / Note
+            </label>
+
+            <textarea
+              rows="3"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              style={{
+                padding: "10px",
+                borderRadius: "6px",
+                border: "1px solid #cbd5e1",
+                fontSize: "14px",
+                resize: "vertical"
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "8px" }}>
+            <Button type="button" variant="secondary" onClick={() => setIsOpen(false)}>
               Cancel
             </Button>
+
             <Button type="submit" disabled={actionLoading}>
               {actionLoading ? "Submitting..." : "Submit"}
             </Button>
           </div>
-
         </form>
       </Modal>
+
     </PageContainer>
   );
 }
 
-/* STYLES */
 const th = {
   padding: "12px",
   textAlign: "left",
   fontSize: "12px",
-  color: "#475569"
+  color: "#475569",
 };
 
 const td = {
   padding: "12px",
   fontSize: "13px",
-  color: "#334155"
+  textAlign: "left",
+  color: "#334155",
+  verticalAlign: "middle",
 };
 
 const tdBold = {
-  padding: "12px",
-  fontSize: "13px",
+  ...td,
   fontWeight: "600",
-  color: "#0f172a"
+  color: "#0f172a",
 };
