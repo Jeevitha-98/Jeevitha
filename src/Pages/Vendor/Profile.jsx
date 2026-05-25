@@ -192,12 +192,31 @@ export default function Profile() {
 
   return (
     <PageContainer>
+      <style>{`
+        .profile-grid-container {
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+        }
+        .profile-details-box {
+          padding: 36px !important;
+        }
+
+        @media (max-width: 768px) {
+          .profile-grid-container {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+          .profile-details-box {
+            padding: 24px 16px !important;
+          }
+        }
+      `}</style>
+
       <div style={headerWrapperStyle}>
         <h2 style={mainHeadingStyle}>My Profile</h2>
         <p style={subHeadingStyle}>Manage your vendor profile credentials and business location information.</p>
       </div>
 
-      <div style={gridContainerStyle}>
+      <div className="profile-grid-container" style={gridContainerStyle}>
         
         <div style={leftActionPanelStyle}>
           <div style={darkCardBoxStyle}>
@@ -230,7 +249,7 @@ export default function Profile() {
           </Button>
         </div>
 
-        <div style={detailsContainerStyle}>
+        <div className="profile-details-box" style={detailsContainerStyle}>
           <h3 style={titleStyle}>
             <span style={{ fontSize: "20px" }}>📋</span> Profile Information
           </h3>
@@ -292,12 +311,12 @@ export default function Profile() {
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           />
 
-          <div style={{ display: "flex", gap: "12px", marginTop: "8px", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "12px" }}>
             <Button variant="secondary" onClick={() => setIsOpen(false)} disabled={isSaving}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Changes"}
+            <Button variant="primary" onClick={handleSave} loading={isSaving}>
+              Save Changes
             </Button>
           </div>
         </div>

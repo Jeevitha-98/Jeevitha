@@ -128,6 +128,13 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
   const currentMenu = role.toLowerCase() === "vendor" ? vendorMenu : supplierMenu;
   const portalName = role.toLowerCase() === "vendor" ? "Vendor Portal" : "Supplier Portal";
 
+  // FIXED: Clears storage tracking parameters and performs redirect routing back to login screen
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/login");
+  };
+
   const sidebarStyle = {
     position: "fixed",
     top: 0,
@@ -135,15 +142,17 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
     height: "100vh",
     backgroundColor: "#0f172a", 
     color: "#f8fafc",
-    zIndex: 100,
-    width: isOpen ? "260px" : "0px",
-    padding: isOpen ? "28px 18px" : "28px 0px",
-    overflow: "hidden",
+    zIndex: 200, 
+    width: "260px",
+    padding: "28px 18px",
+    overflowX: "hidden",
+    overflowY: "auto",
     display: "flex",
     flexDirection: "column",
     boxSizing: "border-box",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    borderRight: isOpen ? "1px solid #1e293b" : "none",
+    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    borderRight: "1px solid #1e293b",
+    transform: isOpen ? "translateX(0)" : "translateX(-100%)",
   };
 
   const logoStyle = {
@@ -153,10 +162,8 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
     letterSpacing: "-0.03em",
     margin: "0 0 36px 0", 
     whiteSpace: "nowrap",
-    opacity: isOpen ? 1 : 0,
-    transition: "opacity 0.2s ease",
     display: "flex",
-    alignIcon: "center",
+    alignItems: "center",
     justifyContent: "center", 
     gap: "10px",
     width: "100%"
@@ -192,6 +199,16 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
     <>
       <style>{`
         .sidebar-link {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          border-radius: 10px;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 500;
+          white-space: nowrap;
+          transition: all 0.2s ease;
           color: #94a3b8;
           background-color: transparent;
         }
@@ -217,36 +234,19 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
 
       <div style={sidebarStyle}>
         <h2 style={logoStyle}>
-          <span style={{ color: "#2563eb", fontSize: "24px" }}>⚡</span> {portalName}
+          <span style={{ color: "#2563eb", fontSize: "24px" }}>⚡</span>
+          <span>{portalName}</span>
         </h2>
 
         <nav style={navContainerStyle}>
           {currentMenu.map((item, index) => {
-            const isActive = item.endProp 
-              ? location.pathname === item.path 
-              : location.pathname.startsWith(item.path);
-
+            const isActive = location.pathname === item.path;
             return (
               <NavLink
                 key={index}
                 to={item.path}
                 end={item.endProp}
                 className="sidebar-link"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px", 
-                  padding: "12px 16px",
-                  borderRadius: "10px",
-                  textDecoration: "none",
-                  fontSize: "14px",
-                  fontWeight: isActive ? "600" : "500",
-                  whiteSpace: "nowrap",
-                  transition: "all 0.2s ease-in-out",
-                  boxSizing: "border-box",
-                  color: isActive ? "#ffffff" : "#94a3b8",
-                  backgroundColor: isActive ? "#2563eb" : "transparent"
-                }}
               >
                 {item.icon(isActive)}
                 <span>{item.name}</span>
@@ -255,23 +255,15 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
           })}
         </nav>
 
-        <div style={{ marginTop: "auto", paddingTop: "16px", borderTop: "1px solid #1e293b", opacity: isOpen ? 1 : 0, transition: "opacity 0.2s ease" }}>
-          <button
-            className="logout-btn"
-            style={logoutButtonStyle}
-            onClick={() => {
-              localStorage.clear();
-              navigate("/login");
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>Logout System</span>
-          </button>
-        </div>
+        {/* FIXED: Attached onClick handler call to trigger storage removal and state routing */}
+        <button className="logout-btn" style={logoutButtonStyle} onClick={handleLogout}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Logout</span>
+        </button>
       </div>
     </>
   );

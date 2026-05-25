@@ -32,18 +32,20 @@ export function VendorProvider({ children }) {
   };
 
   const refreshVendorData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
+    if (!token || role?.toLowerCase() !== "vendor") {
+      setLoading(false);
+      return;
+    }
+
+    try {
       const [browseRes, ordersRes, requestsRes, profileRes] = await Promise.all([
-        vendorService.getBrowseProducts(),
-        vendorService.getMyOrders(),
-        vendorService.getProductRequests(),
-        vendorService.getProfileDetails(),
+        vendorService.getBrowseProducts().catch(err => { console.error("Browse products fail:", err.message); return []; }),
+        vendorService.getMyOrders().catch(err => { console.error("Orders fail:", err.message); return []; }),
+        vendorService.getProductRequests().catch(err => { console.error("Requests fail:", err.message); return []; }),
+        vendorService.getProfileDetails().catch(err => { console.error("Profile fail:", err.message); return null; }),
       ]);
 
       const browseData = browseRes?.data || browseRes;
@@ -68,11 +70,15 @@ export function VendorProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    const role = localStorage.getItem("role");
+
+    if (token && role?.toLowerCase() === "vendor") {
       refreshVendorData();
       if (localStorage.getItem("vendor_activity_logs") === null) {
         logActivity("Vendor panel authenticated and safe proxy link initialized.", "Auth", false);
       }
+    } else {
+      setLoading(false);
     }
   }, []);
 
@@ -83,11 +89,9 @@ export function VendorProvider({ children }) {
       const quantity = requestPayload.quantity || "0";
 
       await vendorService.requestProduct(requestPayload);
-      
       await refreshVendorData(); 
 
       logActivity(`Inbound Dispatch: Requested ${quantity} units of "${productName}" from supplier network.`, "Procure", false);
-
       return { success: true };
     } catch (err) {
       console.error("Failed to submit item procurement request:", err);

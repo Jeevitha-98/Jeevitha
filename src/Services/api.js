@@ -14,9 +14,8 @@ API.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // SAFETY CATCHER: Intercept and force-convert any uppercase /Vendor/ path strings to lowercase /vendor/
-    if (config.url && config.url.includes("/Vendor/")) {
-      config.url = config.url.replace("/Vendor/", "/vendor/");
+    if (config.url) {
+      config.url = config.url.toLowerCase();
     }
     
     return config;
@@ -29,6 +28,7 @@ API.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
+      localStorage.removeItem("role");
       window.location.href = "/login";   
     }
     return Promise.reject(error);

@@ -30,17 +30,28 @@ export function InventoryProvider({ children }) {
   };
 
   const refreshDashboardData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
+    if (!token || role?.toLowerCase() !== "supplier") {
+      setLoading(false);
+      return;
+    }
+
+    try {
       const [stockRes, requestsRes, profileRes] = await Promise.all([
-        supplierService.getStockList(),
-        supplierService.getVendorRequests(),
-        supplierService.getProfileDetails(),
+        supplierService.getStockList().catch(err => {
+          console.error("Error loading Stock List:", err.message);
+          return { data: [] }; 
+        }),
+        supplierService.getVendorRequests().catch(err => {
+          console.error("Error loading Vendor Requests (Server 500):", err.message);
+          return { data: [] }; 
+        }),
+        supplierService.getProfileDetails().catch(err => {
+          console.error("Error loading Profile Details:", err.message);
+          return null; 
+        })
       ]);
 
       const stockData = stockRes?.data || stockRes;
@@ -51,7 +62,7 @@ export function InventoryProvider({ children }) {
       setVendorRequests(Array.isArray(requestsData) ? requestsData : []);
       setProfile(profileData || null);
     } catch (err) {
-      console.error("Failed to sync inventory context across sidebar menus:", err);
+      console.error("Critical error inside dashboard sync routine:", err);
     } finally {
       setLoading(false);
     }
@@ -59,11 +70,15 @@ export function InventoryProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    const role = localStorage.getItem("role");
+
+    if (token && role?.toLowerCase() === "supplier") {
       refreshDashboardData();
       if (localStorage.getItem("supplier_activity_logs") === null) {
         logActivity("Supplier workspace authenticated and secure connection established.", "Auth", false);
       }
+    } else {
+      setLoading(false);
     }
   }, []);
 

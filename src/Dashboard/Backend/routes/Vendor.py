@@ -23,6 +23,7 @@ class CreateProductRequest(BaseModel):
     supplier_id: str
     product_name: str
     quantity: int
+    notes: str | None = None
 
 router = APIRouter(prefix="/vendor", tags=["Vendor Operations"])
 
@@ -121,21 +122,25 @@ def browse_all_products(db: Session = Depends(get_db), current_user: dict = Depe
 
 @router.get("/orders")
 def get_vendor_orders(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
-    # Explicitly pulling specific columns to bypass missing created_at fields safely
+    vendor_id = current_user["user_id"]
     rows = db.query(
         VendorRequest.id,
         VendorRequest.supplier_id,
         VendorRequest.product_name,
         VendorRequest.quantity,
         VendorRequest.status,
-        User.business_name
-    ).join(User, VendorRequest.supplier_id == User.user_id).filter(
-        VendorRequest.vendor_id == current_user["user_id"], 
+        VendorRequest.notes,
+        User.business_name,
+        Product.image
+    ).outerjoin(User, VendorRequest.supplier_id == User.user_id)\
+     .outerjoin(Product, VendorRequest.product_name == Product.name)\
+     .filter(
+        VendorRequest.vendor_id == vendor_id, 
         VendorRequest.status == "Accepted"
     ).all()
     
     response_list = []
-    for r_id, s_id, p_name, qty, stat, b_name in rows:
+    for r_id, s_id, p_name, qty, stat, notes, b_name, p_img in rows:
         response_list.append({
             "id": int(r_id),
             "supplier_id": str(s_id),
@@ -143,13 +148,15 @@ def get_vendor_orders(db: Session = Depends(get_db), current_user: dict = Depend
             "product": str(p_name),
             "quantity": int(qty),
             "status": str(stat),
+            "notes": str(notes) if notes else "",
+            "image": str(p_img) if p_img else "",
             "requested_date": None
         })
     return response_list
 
 @router.get("/product-requests")
 def get_vendor_product_requests(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
-    # Explicitly pulling specific columns to bypass missing created_at fields safely
+    vendor_id = current_user["user_id"]
     rows = db.query(
         VendorRequest.id,
         VendorRequest.vendor_id,
@@ -158,41 +165,55 @@ def get_vendor_product_requests(db: Session = Depends(get_db), current_user: dic
         VendorRequest.quantity,
         VendorRequest.status,
         VendorRequest.supplier_id,
-        User.business_name
-    ).join(User, VendorRequest.supplier_id == User.user_id).filter(
-        VendorRequest.vendor_id == current_user["user_id"]
+        VendorRequest.notes,
+        User.business_name,
+        Product.image
+    ).outerjoin(User, VendorRequest.supplier_id == User.user_id)\
+     .outerjoin(Product, VendorRequest.product_name == Product.name)\
+     .filter(
+        VendorRequest.vendor_id == vendor_id
     ).all()
     
     response_list = []
-    for r_id, v_id, v_name, p_name, qty, stat, s_id, b_name in rows:
+    for r_id, v_id, v_name, p_name, qty, stat, s_id, notes, b_name, p_img in rows:
         response_list.append({
             "id": int(r_id),
             "vendor_id": str(v_id),
-            "vendor_name": str(v_name),
+            "vendor_name": str(v_name) if v_name else "Vendor Portal",
             "product": str(p_name),
             "quantity": int(qty),
             "status": str(stat),
             "supplier_id": str(s_id),
             "supplier_name": str(b_name) if b_name else str(s_id),
+            "notes": str(notes) if notes else "",
+            "image": str(p_img) if p_img else "",
             "requested_date": None
         })
     return response_list
 
 @router.post("/product-requests")
 def create_procurement_request(payload: CreateProductRequest, db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
-    vendor_id = current_user["user_id"]
-    user_profile = db.query(User).filter(User.user_id == vendor_id).first()
-    vendor_name = user_profile.business_name if user_profile and user_profile.business_name else f"Vendor {vendor_id}"
-    
-    new_request = VendorRequest(
-        vendor_id=vendor_id,
-        vendor_name=vendor_name,
-        product_name=payload.product_name,
-        quantity=payload.quantity,
-        status="Pending",
-        supplier_id=payload.supplier_id
-    )
-    db.add(new_request)
-    db.commit()
-    db.refresh(new_request)
-    return {"status": True, "message": "Procurement request logged successfully", "id": new_request.id}
+    try:
+        vendor_id = current_user["user_id"]
+        user_profile = db.query(User).filter(User.user_id == vendor_id).first()
+        vendor_name = user_profile.business_name if user_profile and user_profile.business_name else f"Vendor {vendor_id}"
+        
+        new_request = VendorRequest(
+            vendor_id=vendor_id,
+            vendor_name=vendor_name,
+            product_name=payload.product_name,
+            quantity=payload.quantity,
+            status="Pending",
+            supplier_id=payload.supplier_id,
+            notes=payload.notes if payload.notes else ""
+        )
+        db.add(new_request)
+        db.commit()
+        db.refresh(new_request)
+        return {"status": True, "message": "Procurement request logged successfully", "id": new_request.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database payload integration failure: {str(e)}"
+        )

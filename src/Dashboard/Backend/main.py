@@ -15,23 +15,29 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Supplier & Vendor System API", lifespan=lifespan)
 
+# Maintained the enhanced CORS origins matrix to unblock browser preflight validation options
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
+        "http://localhost:8085",
+        "http://127.0.0.1:8085"
     ],
     allow_credentials=True,
     allow_methods=["*"],  
     allow_headers=["*"],  
+    expose_headers=["*"]
 )
 
 os.makedirs("uploads/products", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(authroutes.router, prefix="/auth")
+
+# RESTORED: Removed the duplicate outer path prefixes to resolve the double path duplication conflict
 app.include_router(Supplier.router)
 app.include_router(Vendor.router)
 

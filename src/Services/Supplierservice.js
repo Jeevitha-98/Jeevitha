@@ -27,11 +27,11 @@ export const supplierService = {
   },
 
   updateVendorRequestStatus: async (requestId, status) => {
-    const response = await API.patch(`/supplier/vendor-requests/${requestId}`, { status });
+    // FIXED: Changed method to .put and added trailing /status path to match your FastAPI router schema
+    const response = await API.put(`/supplier/vendor-requests/${requestId}/status`, { status });
     return response.data;
   },
 
-  // Parameter renamed to isMultipart to match your context call signature
   addProduct: async (productData, isMultipart = false) => {
     const config = isMultipart 
       ? { headers: { "Content-Type": "multipart/form-data" } }

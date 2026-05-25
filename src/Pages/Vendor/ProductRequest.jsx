@@ -32,10 +32,12 @@ export default function RequestProduct() {
       ...r,
       status: "Pending",
     }));
+
     const acceptedList = (acceptedRequests || []).map((r) => ({
       ...r,
       status: "Accepted",
     }));
+
     return [...pendingList, ...acceptedList];
   };
 
@@ -43,7 +45,9 @@ export default function RequestProduct() {
 
   const filteredRequests = allRequests.filter((req) => {
     if (!req) return false;
+
     if (statusFilter === "All") return true;
+
     return req.status?.toLowerCase() === statusFilter.toLowerCase();
   });
 
@@ -73,6 +77,7 @@ export default function RequestProduct() {
     };
 
     const result = await createProductRequest(payload);
+
     setActionLoading(false);
 
     if (result.success) {
@@ -86,19 +91,157 @@ export default function RequestProduct() {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Accepted":
-        return { background: "#e6f4ea", color: "#137333" };
+        return {
+          background: "#e6f4ea",
+          color: "#137333",
+          border: "1px solid #c4eed0",
+        };
+
       case "Rejected":
-        return { background: "#fde2e2", color: "#c62828" };
+        return {
+          background: "#fee2e2",
+          color: "#c53030",
+          border: "1px solid #fecaca",
+        };
+
       default:
-        return { background: "#fff7e6", color: "#b26a00" };
+        return {
+          background: "#fff7ed",
+          color: "#a16207",
+          border: "1px solid #fef08a",
+        };
     }
+  };
+
+  const headerWrapperStyle = {
+    marginBottom: "32px",
+    borderBottom: "1px solid #f1f5f9",
+    paddingBottom: "20px",
+    textAlign: "left",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "16px",
+  };
+
+  const mainHeadingStyle = {
+    margin: "0 0 6px 0",
+    fontSize: "26px",
+    fontWeight: "700",
+    color: "#0f172a",
+    letterSpacing: "-0.02em",
+  };
+
+  const subHeadingStyle = {
+    margin: 0,
+    fontSize: "14px",
+    color: "#64748b",
+    fontWeight: "400",
+  };
+
+  const tableContainerStyle = {
+    background: "#ffffff",
+    borderRadius: "16px",
+    boxShadow:
+      "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
+    border: "1px solid #e2e8f0",
+    overflow: "hidden",
+    width: "100%",
+    boxSizing: "border-box",
+  };
+
+  const tableTitleBarStyle = {
+    padding: "20px 24px",
+    borderBottom: "1px solid #e2e8f0",
+    backgroundColor: "#ffffff",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "16px",
+  };
+
+  const segmentConsoleStyle = {
+    display: "flex",
+    backgroundColor: "#f1f5f9",
+    padding: "4px",
+    borderRadius: "8px",
+    gap: "2px",
+  };
+
+  const tableStyle = {
+    width: "100%",
+    borderCollapse: "collapse",
+    textAlign: "left",
+    fontSize: "14px",
+  };
+
+  const thStyle = {
+    padding: "18px 24px",
+    background: "#f8fafc",
+    color: "#475569",
+    fontWeight: "600",
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    borderBottom: "1px solid #e2e8f0",
+  };
+
+  const tdStyle = {
+    padding: "18px 24px",
+    color: "#334155",
+    borderBottom: "1px solid #f1f5f9",
+    verticalAlign: "middle",
+  };
+
+  const customSelectDropdownStyle = {
+    width: "100%",
+    height: "42px",
+    padding: "0 14px",
+    borderRadius: "8px",
+    border: "1px solid #cbd5e1",
+    backgroundColor: "#ffffff",
+    fontSize: "14px",
+    color: "#0f172a",
+    outline: "none",
+    cursor: "pointer",
+    boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
   };
 
   if (loading) {
     return (
       <PageContainer>
-        <div style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>
-          Loading requests...
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "40vh",
+            width: "100%",
+          }}
+        >
+          <style>{`
+            @keyframes spin {
+              0% {
+                transform: rotate(0deg);
+              }
+              100% {
+                transform: rotate(360deg);
+              }
+            }
+          `}</style>
+
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: "3px solid #cbd5e1",
+              borderTop: "3px solid #2563eb",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
         </div>
       </PageContainer>
     );
@@ -106,159 +249,275 @@ export default function RequestProduct() {
 
   return (
     <PageContainer>
-
       {/* HEADER */}
-      <div style={{
-        marginBottom: "20px",
-        padding: "18px",
-        background: "#fff",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
-      }}>
+      <div style={headerWrapperStyle}>
         <div style={{ textAlign: "left" }}>
-          <h2 style={{ margin: 0, fontSize: "22px", color: "#0f172a" }}>
+          <h2 style={mainHeadingStyle}>
             Product Procurement Requests
           </h2>
-          <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: "13px" }}>
-            Raise fresh stock requirements and monitor submission logs.
+
+          <p style={subHeadingStyle}>
+            Raise fresh stock requirements and monitor
+            submission logs seamlessly.
           </p>
         </div>
 
-        <Button onClick={handleOpenForm}>+ Request Product</Button>
+        <Button
+          onClick={handleOpenForm}
+          style={{
+            height: "42px",
+            padding: "0 20px",
+            fontWeight: "600",
+            borderRadius: "10px",
+            boxShadow:
+              "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          + Request Product
+        </Button>
       </div>
 
-      {/* TABLE CARD */}
-      <div style={{
-        background: "#fff",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        overflow: "hidden"
-      }}>
+      {/* TABLE */}
+      <div style={tableContainerStyle}>
+        <div style={tableTitleBarStyle}>
+          <span
+            style={{
+              fontSize: "16px",
+              fontWeight: "700",
+              color: "#0f172a",
+            }}
+          >
+            My Requests Queue
+          </span>
 
-        {/* FILTER BAR */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 16px",
-          borderBottom: "1px solid #e2e8f0"
-        }}>
-          <strong style={{ color: "#0f172a" }}>My Requests Queue</strong>
+          <div style={segmentConsoleStyle}>
+            {["All", "Pending", "Accepted", "Rejected"].map(
+              (tab) => {
+                const isSelected = statusFilter === tab;
 
-          <div style={{ display: "flex", gap: "8px" }}>
-            {["All", "Pending", "Accepted", "Rejected"].map(tab => (
-              <button
-                key={tab}
-                onClick={() => setStatusFilter(tab)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  background: statusFilter === tab ? "#2563eb" : "#f1f5f9",
-                  color: statusFilter === tab ? "#fff" : "#475569"
-                }}
-              >
-                {tab}
-              </button>
-            ))}
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setStatusFilter(tab)}
+                    style={{
+                      border: "none",
+                      outline: "none",
+                      padding: "6px 14px",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      backgroundColor: isSelected
+                        ? "#ffffff"
+                        : "transparent",
+                      color: isSelected
+                        ? "#2563eb"
+                        : "#475569",
+                      boxShadow: isSelected
+                        ? "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)"
+                        : "none",
+                      transition: "all 0.15s ease-in-out",
+                    }}
+                  >
+                    {tab}
+                  </button>
+                );
+              }
+            )}
           </div>
         </div>
 
-        {/* TABLE */}
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table style={tableStyle}>
             <thead>
-              <tr style={{ background: "#f8fafc" }}>
-                <th style={th}>Product</th>
-                <th style={th}>Quantity</th>
-                <th style={th}>Supplier</th>
-                <th style={th}>Message / Note</th>
-                <th style={th}>Status</th>
+              <tr>
+                <th style={thStyle}>Product</th>
+                <th style={thStyle}>Quantity</th>
+                <th style={thStyle}>Supplier</th>
+                <th style={thStyle}>Message / Note</th>
+                <th style={thStyle}>Status</th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredRequests.length > 0 ? filteredRequests.map((req, i) => {
+              {filteredRequests.length > 0 ? (
+                filteredRequests.map((req, i) => {
+                  if (!req) return null;
 
-                const targetProductName = req.product || req.product_name || "";
+                  const targetProductName =
+                    req.product || req.product_name || "";
 
-                const matchedProduct = (availableProducts || []).find(
-                  (p) =>
-                    (p.name || "").toLowerCase() === targetProductName.toLowerCase()
-                );
+                  const matchedProduct = (
+                    availableProducts || []
+                  ).find(
+                    (p) =>
+                      p &&
+                      p.name &&
+                      p.name.toLowerCase() ===
+                        targetProductName.toLowerCase()
+                  );
 
-                const resolvedImage =
-                  req.product_image ||
-                  req.image ||
-                  req.image_url ||
-                  matchedProduct?.image ||
-                  matchedProduct?.image_url;
+                  const resolvedImage =
+                    req.product_image ||
+                    req.image ||
+                    req.image_url ||
+                    matchedProduct?.image ||
+                    matchedProduct?.image_url;
 
-                return (
-                  <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={tdBold}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        {resolvedImage ? (
-                          <img
-                            src={resolvedImage}
-                            alt={targetProductName}
-                            style={{
-                              width: "36px",
-                              height: "36px",
-                              borderRadius: "6px",
-                              objectFit: "cover",
-                              border: "1px solid #e2e8f0"
-                            }}
-                          />
-                        ) : (
-                          <div style={{
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "6px",
-                            backgroundColor: "#f1f5f9",
+                  const customStatusStyle =
+                    getStatusStyle(req.status);
+
+                  return (
+                    <tr
+                      key={req.id || i}
+                      style={{
+                        transition:
+                          "background-color 0.2s ease",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          "#f8fafc")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          "transparent")
+                      }
+                    >
+                      <td style={tdStyle}>
+                        <div
+                          style={{
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            border: "1px solid #e2e8f0",
-                            color: "#94a3b8",
-                            fontSize: "11px",
-                            fontWeight: "500"
-                          }}>
-                            No Img
-                          </div>
-                        )}
-                        <span>{targetProductName}</span>
-                      </div>
-                    </td>
+                            gap: "14px",
+                          }}
+                        >
+                          {resolvedImage ? (
+                            <img
+                              src={resolvedImage}
+                              alt={targetProductName}
+                              style={{
+                                width: "42px",
+                                height: "42px",
+                                borderRadius: "8px",
+                                objectFit: "cover",
+                                border:
+                                  "1px solid #e2e8f0",
+                                backgroundColor:
+                                  "#f8fafc",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "42px",
+                                height: "42px",
+                                borderRadius: "8px",
+                                backgroundColor:
+                                  "#f1f5f9",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                border:
+                                  "1px solid #e2e8f0",
+                                color: "#94a3b8",
+                                fontSize: "11px",
+                                fontWeight: "600",
+                              }}
+                            >
+                              N/A
+                            </div>
+                          )}
 
-                    <td style={td}>{req.quantity}</td>
-                    <td style={td}>{req.supplier_name || req.supplier_id || "Global Wholesaler"}</td>
-                    <td style={{ ...td, color: "#64748b" }}>
-                      {req.notes || req.message || "—"}
-                    </td>
+                          <span
+                            style={{
+                              fontWeight: "600",
+                              color: "#0f172a",
+                            }}
+                          >
+                            {targetProductName}
+                          </span>
+                        </div>
+                      </td>
 
-                    <td style={td}>
-                      <span style={{
-                        padding: "5px 10px",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        ...getStatusStyle(req.status)
-                      }}>
-                        {req.status}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              }) : (
+                      <td
+                        style={{
+                          ...tdStyle,
+                          fontFamily:
+                            "'JetBrains Mono', 'Fira Code', monospace",
+                          fontWeight: "600",
+                          color: "#0f172a",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {req.quantity} units
+                      </td>
+
+                      <td
+                        style={{
+                          ...tdStyle,
+                          color: "#475569",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {req.supplier_name ||
+                          req.supplier_id ||
+                          "Global Wholesaler"}
+                      </td>
+
+                      <td
+                        style={{
+                          ...tdStyle,
+                          color: "#64748b",
+                          fontWeight: "400",
+                          maxWidth: "240px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {req.notes ||
+                          req.message ||
+                          "—"}
+                      </td>
+
+                      <td style={tdStyle}>
+                        <span
+                          style={{
+                            padding: "6px 14px",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            display: "inline-block",
+                            letterSpacing: "0.02em",
+                            backgroundColor:
+                              customStatusStyle.background,
+                            color:
+                              customStatusStyle.color,
+                            border:
+                              customStatusStyle.border,
+                          }}
+                        >
+                          {req.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
-                    No procurement records matching selection found.
+                  <td
+                    colSpan="5"
+                    style={{
+                      ...tdStyle,
+                      textAlign: "center",
+                      color: "#94a3b8",
+                      padding: "48px",
+                      fontSize: "14px",
+                      fontWeight: "400",
+                    }}
+                  >
+                    No procurement requests match the
+                    selected status tag filter criteria.
                   </td>
                 </tr>
               )}
@@ -268,108 +527,123 @@ export default function RequestProduct() {
       </div>
 
       {/* MODAL */}
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Request Product Stock">
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Raise Procurement Request"
+      >
         <form
-          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
           onSubmit={handleSubmitRequest}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+            marginTop: "8px",
+            textAlign: "left",
+          }}
         >
-          <div style={{ display: "flex", flexDirection: "row", gap: "16px", width: "100%", alignItems: "flex-end" }}>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left", flex: "3" }}>
-              <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                Select Product *
-              </label>
-
-              <select
-                required
-                value={selectedProductId}
-                onChange={(e) => setSelectedProductId(e.target.value)}
-                style={{
-                  padding: "10px",
-                  borderRadius: "8px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "14px",
-                  width: "100%",
-                  height: "40px"
-                }}
-              >
-                <option value="">Choose product</option>
-                {(availableProducts || []).map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left", flex: "1" }}>
-              <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                Quantity *
-              </label>
-
-              <Input
-                type="number"
-                min="1"
-                required
-                value={requestQuantity}
-                onChange={(e) => setRequestQuantity(e.target.value)}
-              />
-            </div>
-
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px", textAlign: "left" }}>
-            <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-              Message / Note
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#344054",
+              }}
+            >
+              Select Marketplace Product
             </label>
 
-            <textarea
-              rows="3"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              style={{
-                padding: "10px",
-                borderRadius: "6px",
-                border: "1px solid #cbd5e1",
-                fontSize: "14px",
-                resize: "vertical"
-              }}
-            />
+            <select
+              required
+              value={selectedProductId}
+              onChange={(e) =>
+                setSelectedProductId(e.target.value)
+              }
+              style={customSelectDropdownStyle}
+            >
+              <option value="">
+                -- Click to choose product asset --
+              </option>
+
+              {(availableProducts || []).map(
+                (prod) =>
+                  prod && (
+                    <option
+                      key={prod.id}
+                      value={prod.id}
+                    >
+                      {prod.name} (Supplier:{" "}
+                      {prod.supplier_id || "Global"}) — ₹
+                      {prod.price}
+                    </option>
+                  )
+              )}
+            </select>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "8px" }}>
-            <Button type="button" variant="secondary" onClick={() => setIsOpen(false)}>
+          <Input
+            label="Required Volume (Units)"
+            type="number"
+            min="1"
+            required
+            value={requestQuantity}
+            onChange={(e) =>
+              setRequestQuantity(e.target.value)
+            }
+          />
+
+          <Input
+            label="Procurement Message / Dispatch Notes"
+            placeholder="Provide routing codes or additional notes for the wholesaler..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              marginTop: "12px",
+              justifyContent: "flex-end",
+            }}
+          >
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsOpen(false)}
+              style={{
+                flex: 1,
+                height: "42px",
+                fontWeight: "600",
+              }}
+              disabled={actionLoading}
+            >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={actionLoading}>
-              {actionLoading ? "Submitting..." : "Submit"}
+            <Button
+              type="submit"
+              variant="primary"
+              style={{
+                flex: 1,
+                height: "42px",
+                fontWeight: "600",
+              }}
+              disabled={actionLoading}
+            >
+              {actionLoading
+                ? "Submitting Request..."
+                : "Dispatch Request"}
             </Button>
           </div>
         </form>
       </Modal>
-
     </PageContainer>
   );
 }
-
-const th = {
-  padding: "12px",
-  textAlign: "left",
-  fontSize: "12px",
-  color: "#475569",
-};
-
-const td = {
-  padding: "12px",
-  fontSize: "13px",
-  textAlign: "left",
-  color: "#334155",
-  verticalAlign: "middle",
-};
-
-const tdBold = {
-  ...td,
-  fontWeight: "600",
-  color: "#0f172a",
-};

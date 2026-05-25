@@ -30,11 +30,11 @@ export default function MyOrders() {
   const getStatusStyle = (statusText) => {
     switch (statusText) {
       case "Approved":
-        return { background: "#e6f4ea", color: "#137333" };
+        return { background: "#e6f4ea", color: "#137333", border: "1px solid #c4eed0" };
       case "Rejected":
-        return { background: "#fee2e2", color: "#c5221f" };
+        return { background: "#fee2e2", color: "#c5221f", border: "1px solid #fecaca" };
       default:
-        return { background: "#fff7ed", color: "#b06000" };
+        return { background: "#fff7ed", color: "#b06000", border: "1px solid #fef08a" };
     }
   };
 
@@ -188,10 +188,11 @@ export default function MyOrders() {
                   if (!order) return null;
 
                   const matchedProduct = (availableProducts || []).find(
-                    (p) => p.name?.toLowerCase() === order.product?.toLowerCase()
+                    (p) => p && p.name && p.name.toLowerCase() === order.product?.toLowerCase()
                   );
                   
                   const resolvedImage = order.product_image || order.image || order.image_url || matchedProduct?.image || matchedProduct?.image_url;
+                  const customBadgeStyle = getStatusStyle(order.status);
 
                   return (
                     <tr
@@ -201,38 +202,42 @@ export default function MyOrders() {
                       onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
                       <td style={tdStyle}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                           {resolvedImage ? (
                             <img 
                               src={resolvedImage} 
                               alt={order.product} 
-                              style={{ width: "36px", height: "36px", borderRadius: "6px", objectFit: "cover", border: "1px solid #e2e8f0" }} 
+                              style={{ width: "42px", height: "42px", borderRadius: "10px", objectFit: "cover", border: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }} 
                             />
                           ) : (
-                            <div style={{ width: "36px", height: "36px", borderRadius: "6px", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #e2e8f0", color: "#94a3b8", fontSize: "11px", fontWeight: "500" }}>
-                              No Img
+                            <div style={{ width: "42px", height: "42px", borderRadius: "10px", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #e2e8f0", color: "#94a3b8", fontSize: "11px", fontWeight: "600" }}>
+                              N/A
                             </div>
                           )}
                           <span style={{ fontWeight: "600", color: "#0f172a" }}>{order.product}</span>
                         </div>
                       </td>
-                      <td style={{ ...tdStyle, fontFamily: "'JetBrains Mono', monospace", fontWeight: "600", color: "#0f172a" }}>{order.quantity} units</td>
-                      <td style={{ ...tdStyle, color: "#475569", fontWeight: "500" }}>{order.supplier_name || order.supplier_id || "Global Wholesaler"}</td>
-                      <td style={{ ...tdStyle, color: "#64748b" }}>
+                      <td style={{ ...tdStyle, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontWeight: "600", color: "#0f172a", fontSize: "14px" }}>
+                        {order.quantity} units
+                      </td>
+                      <td style={{ ...tdStyle, color: "#475569", fontWeight: "500" }}>
+                        {order.supplier_name || order.supplier_id || "Global Wholesaler"}
+                      </td>
+                      <td style={{ ...tdStyle, color: "#64748b", fontWeight: "400" }}>
                         {order.requested_date || new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
                       <td style={tdStyle}>
-                        <span
-                          style={{
-                            padding: "6px 14px",
-                            borderRadius: "8px",
-                            fontWeight: "600",
-                            fontSize: "12px",
-                            display: "inline-block",
-                            letterSpacing: "0.02em",
-                            ...getStatusStyle(order.status)
-                          }}
-                        >
+                        <span style={{
+                          padding: "6px 14px",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          display: "inline-block",
+                          letterSpacing: "0.02em",
+                          background: customBadgeStyle.background,
+                          color: customBadgeStyle.color,
+                          border: customBadgeStyle.border
+                        }}>
                           {order.status}
                         </span>
                       </td>
@@ -241,8 +246,8 @@ export default function MyOrders() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="5" style={{ ...tdStyle, textAlign: "center", padding: "48px 24px", color: "#64748b" }}>
-                    No procurement records matching selection found.
+                  <td colSpan="5" style={{ ...tdStyle, textAlign: "center", color: "#94a3b8", padding: "48px", fontSize: "14px", fontWeight: "400" }}>
+                    No registered order entries match the selected '{statusFilter}' status tag filter.
                   </td>
                 </tr>
               )}

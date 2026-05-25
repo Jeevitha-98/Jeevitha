@@ -33,18 +33,16 @@ if "products" not in Base.metadata.tables:
 else:
     Product = Base.metadata.tables["products"]
 
-if "vendor_requests" not in Base.metadata.tables:
-    class VendorRequest(Base):
-        __tablename__ = "vendor_requests"
-        __table_args__ = {'extend_existing': True}
+class VendorRequest(Base):
+    __tablename__ = "vendor_requests"
+    __table_args__ = {'extend_existing': True}
 
-        id = Column(Integer, primary_key=True, index=True)
-        vendor_id = Column(String(20), nullable=False)
-        vendor_name = Column(String(100), nullable=True)
-        product_name = Column(String(100), nullable=False)
-        quantity = Column(Integer, nullable=False)
-        status = Column(String(20), default="Pending")
-        supplier_id = Column(String(20), nullable=False)
-        created_at = Column(String(30), nullable=True)
-else:
-    VendorRequest = Base.metadata.tables["vendor_requests"]
+    id = Column(Integer, primary_key=True, index=True)
+    vendor_id = Column(String(20), nullable=False)
+    vendor_name = Column(String(100), nullable=True)
+    product_name = Column(String(100), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    status = Column(String(20), default="Pending")
+    supplier_id = Column(String(20), nullable=False)
+    notes = Column(String(255), default="", nullable=True)
+    created_at = Column(String(30), nullable=True)

@@ -24,17 +24,14 @@ class VendorRequestStatusUpdate(BaseModel):
 
 router = APIRouter(prefix="/supplier", tags=["Supplier Operations"])
 
-# Inside src/Dashboard/Backend/routes/Supplier.py
 security = HTTPBearer()
 
-# Overriding directly to isolate path mismatches
 SECRET_KEY = "my_ultra_secure_super_long_secret_key_32_bytes_long!"
 ALGORITHM = "HS256"
 
 def get_current_supplier(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     try:
-        # Decodes the token using the secure key signature directly
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
         role = payload.get("role")
@@ -48,7 +45,6 @@ def get_current_supplier(credentials: HTTPAuthorizationCredentials = Depends(sec
             
         return {"user_id": str(user_id), "role": clean_role}
     except jwt.PyJWTError as e:
-        # Logs the exact error message to the terminal to trace validation failures
         print(f"--- JWT DECODE FAILURE TRACE: {str(e)} ---")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token signature")
 
@@ -109,18 +105,39 @@ def get_stock_list(db: Session = Depends(get_db), current_user: dict = Depends(g
             raw_stock = getattr(p, 'quantity', 0) or 0
         raw_price = getattr(p, 'price', 0) or 0
         raw_image = str(p.image) if hasattr(p, 'image') and p.image else ""
-        stock_list.append({"id": int(p.id), "name": str(p.name), "category": str(getattr(p, 'category', 'General') or 'General'), "stock": int(raw_stock), "price": float(raw_price), "image": raw_image})
+        stock_list.append({
+            "id": int(p.id),
+            "name": str(p.name),
+            "category": str(getattr(p, 'category', 'General') or 'General'),
+            "stock": int(raw_stock),
+            "price": float(raw_price),
+            "image": raw_image
+        })
     return stock_list
 
 @router.post("/products")
-async def add_product(name: str = Form(...), category: str = Form("General"), price: float = Form(...), stock: int = Form(...), quantity: int = Form(None), image: UploadFile = File(None), db: Session = Depends(get_db), current_user: dict = Depends(get_current_supplier)):
+async def add_product(
+    name: str = Form(...),
+    category: str = Form("General"),
+    price: float = Form(...),
+    stock: int = Form(...),
+    quantity: int = Form(None),
+    image: UploadFile = File(None),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_supplier)
+):
     supplier_id = str(current_user["user_id"])
     UPLOAD_DIR = "uploads/products"
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     image_url = ""
     calculated_quantity = quantity if quantity is not None else stock
     clean_name = name.strip()
-    db_product = db.query(Product).filter(Product.name.ilike(clean_name), Product.supplier_id == supplier_id).first()
+
+    db_product = db.query(Product).filter(
+        Product.name.ilike(clean_name),
+        Product.supplier_id == supplier_id
+    ).first()
+
     if image and image.filename:
         file_location = os.path.join(UPLOAD_DIR, image.filename)
         with open(file_location, "wb") as buffer:
@@ -128,6 +145,7 @@ async def add_product(name: str = Form(...), category: str = Form("General"), pr
         image_url = f"http://localhost:8085/uploads/products/{image.filename}"
     elif db_product and hasattr(db_product, 'image') and db_product.image:
         image_url = str(db_product.image)
+
     if db_product:
         db_product.category = category.strip()
         db_product.price = price
@@ -135,47 +153,123 @@ async def add_product(name: str = Form(...), category: str = Form("General"), pr
         db_product.quantity += calculated_quantity
         db_product.image = image_url
         db.commit()
-        db.refresh(db_product)
-        return {"id": int(db_product.id), "name": str(db_product.name), "category": str(db_product.category), "price": float(db_product.price), "stock": int(db_product.stock), "quantity": int(db_product.quantity), "image": str(db_product.image)}
+
+        return {
+            "id": int(db_product.id) if db_product.id else 0,
+            "name": str(db_product.name),
+            "category": str(db_product.category),
+            "price": float(db_product.price),
+            "stock": int(db_product.stock) if db_product.stock else 0,
+            "quantity": int(db_product.quantity) if db_product.quantity else 0,
+            "image": str(db_product.image)
+        }
     else:
-        new_product = Product(name=clean_name, category=category.strip(), price=price, stock=stock, quantity=calculated_quantity, supplier_id=supplier_id, image=image_url)
+        new_product = Product(
+            name=clean_name,
+            category=category.strip(),
+            price=price,
+            stock=stock,
+            quantity=calculated_quantity,
+            supplier_id=supplier_id,
+            image=image_url
+        )
         db.add(new_product)
         db.commit()
         db.refresh(new_product)
-        return {"id": int(new_product.id), "name": str(new_product.name), "category": str(new_product.category), "price": float(new_product.price), "stock": int(new_product.stock), "quantity": int(new_product.quantity), "image": str(new_product.image)}
+
+        return {
+            "id": int(new_product.id) if new_product.id else 0,
+            "name": str(new_product.name),
+            "category": str(new_product.category),
+            "price": float(new_product.price),
+            "stock": int(new_product.stock) if new_product.stock else 0,
+            "quantity": int(new_product.quantity) if new_product.quantity else 0,
+            "image": str(new_product.image)
+        }
 
 @router.get("/vendor-requests")
 def get_vendor_requests(db: Session = Depends(get_db), current_user: dict = Depends(get_current_supplier)):
     try:
-        requests = db.query(VendorRequest).filter(VendorRequest.supplier_id == current_user["user_id"]).all()
+        requests = db.query(VendorRequest).filter(
+            VendorRequest.supplier_id == current_user["user_id"]
+        ).all()
+
         response_list = []
         for r in requests:
             if not r:
                 continue
+
             r_data = r.__dict__
-            v_id = str(r_data.get('vendor_id', 'Unknown ID'))
+            v_id = str(r_data.get('vendor_id', r_data.get('user_id', 'Unknown ID')))
             v_name = str(r_data.get('vendor_name', f"Vendor ({v_id})"))
             p_name = str(r_data.get('product_name', 'Catalog Product'))
             qty = int(r_data.get('quantity', 1))
             stat = str(r_data.get('status', 'Pending'))
-            
+            notes = str(r_data.get('notes', ''))
+
             response_list.append({
                 "id": int(r_data.get('id', 0)),
                 "vendorName": v_name,
                 "product": p_name,
                 "quantity": qty,
-                "status": stat
+                "status": stat,
+                "notes": notes
             })
-        return response_list
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@router.patch("/vendor-requests/{request_id}")
-def update_vendor_request_status(request_id: int, payload: VendorRequestStatusUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_supplier)):
-    req = db.query(VendorRequest).filter(VendorRequest.id == request_id, VendorRequest.supplier_id == current_user["user_id"]).first()
-    if not req:
-        raise HTTPException(status_code=404, detail="Request log entry not found")
-        
-    req.status = payload.status
-    db.commit()
-    return {"status": True, "message": "Fulfillment entry status updated successfully"}
+        return response_list
+
+    except Exception as e:
+        print(f"Error fetching vendor requests: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.put("/vendor-requests/{request_id}/status")
+def update_vendor_request_status(
+    request_id: int,
+    payload: VendorRequestStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_supplier)
+):
+    try:
+        next_status = payload.status
+
+        vendor_req = db.query(VendorRequest).filter(
+            VendorRequest.id == request_id
+        ).first()
+
+        if not vendor_req:
+            raise HTTPException(status_code=404, detail="Order request record not found")
+
+        if next_status.lower() == "accepted" and vendor_req.status.lower() != "accepted":
+            product_item = db.query(Product).filter(
+                Product.name == vendor_req.product_name,
+                Product.supplier_id == current_user["user_id"]
+            ).first()
+
+            if not product_item:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Requested product not found in your stock list"
+                )
+
+            if product_item.stock < vendor_req.quantity:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient stock. Available: {product_item.stock}, Requested: {vendor_req.quantity}"
+                )
+
+            product_item.stock -= vendor_req.quantity
+
+            if hasattr(product_item, 'quantity') and product_item.quantity:
+                product_item.quantity = max(0, product_item.quantity - vendor_req.quantity)
+
+        vendor_req.status = next_status
+        db.commit()
+
+        return {
+            "status": True,
+            "message": f"Order status updated to {next_status} successfully."
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database operational update error: {str(e)}")
