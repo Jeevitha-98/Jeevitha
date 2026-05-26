@@ -125,10 +125,92 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
     },
   ];
 
-  const currentMenu = role.toLowerCase() === "vendor" ? vendorMenu : supplierMenu;
-  const portalName = role.toLowerCase() === "vendor" ? "Vendor Portal" : "Supplier Portal";
+  const adminMenu = [
+    { 
+      name: "Dashboard", 
+      path: "/admin/dashboard", 
+      endProp: true,
+      icon: (isActive) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isActive ? "#ffffff" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.2s" }}>
+          <rect x="3" y="3" width="7" height="9"></rect>
+          <rect x="14" y="3" width="7" height="5"></rect>
+          <rect x="14" y="12" width="7" height="9"></rect>
+          <rect x="3" y="16" width="7" height="5"></rect>
+        </svg>
+      )
+    },
+    { 
+      name: "Suppliers", 
+      path: "/admin/dashboard/suppliers",
+      icon: (isActive) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isActive ? "#ffffff" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.2s" }}>
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      )
+    },
+    { 
+      name: "Vendors", 
+      path: "/admin/dashboard/vendors",
+      icon: (isActive) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isActive ? "#ffffff" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.2s" }}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      )
+    },
+    { 
+      name: "Products", 
+      path: "/admin/dashboard/products",
+      icon: (isActive) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isActive ? "#ffffff" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.2s" }}>
+          <polygon points="12 2 2 7 12 12 22 7 12 22"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+        </svg>
+      )
+    },
+    { 
+      name: "Orders", 
+      path: "/admin/dashboard/orders",
+      icon: (isActive) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isActive ? "#ffffff" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.2s" }}>
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+      )
+    },
+    { 
+      name: "Stock Monitoring", 
+      path: "/admin/dashboard/stock-monitoring",
+      icon: (isActive) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isActive ? "#ffffff" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.2s" }}>
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+      )
+    },
+    { 
+      name: "Profile", 
+      path: "/admin/dashboard/profile",
+      icon: (isActive) => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isActive ? "#ffffff" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.2s" }}>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      )
+    }
+  ];
 
-  // FIXED: Clears storage tracking parameters and performs redirect routing back to login screen
+  const storageRole = (localStorage.getItem("role") || role || "").trim().toLowerCase();
+  const currentMenu = storageRole === "vendor" ? vendorMenu : storageRole === "admin" ? adminMenu : supplierMenu;
+  const portalName = storageRole === "vendor" ? "Vendor Portal" : storageRole === "admin" ? "Admin Portal" : "Supplier Portal";
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -140,9 +222,9 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
     top: 0,
     left: 0,
     height: "100vh",
-    backgroundColor: "#0f172a", 
+    backgroundColor: "#0f172a",
     color: "#f8fafc",
-    zIndex: 200, 
+    zIndex: 200,
     width: "260px",
     padding: "28px 18px",
     overflowX: "hidden",
@@ -160,11 +242,11 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
     fontWeight: "800",
     color: "#ffffff",
     letterSpacing: "-0.03em",
-    margin: "0 0 36px 0", 
+    margin: "0 0 36px 0",
     whiteSpace: "nowrap",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center", 
+    justifyContent: "center",
     gap: "10px",
     width: "100%"
   };
@@ -216,53 +298,48 @@ export default function Sidebar({ isOpen, role = "supplier" }) {
           color: #ffffff !important;
           background-color: #1e293b !important;
         }
-        .sidebar-link:hover:not(.active) svg {
-          stroke: #94a3b8 !important;
-        }
         .sidebar-link.active {
           color: #ffffff !important;
-          background-color: #2563eb !important; 
-          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
-          font-weight: 600 !important;
+          background-color: #3b82f6 !important;
+          font-weight: 600;
         }
-        .logout-btn:hover {
-          background-color: rgba(239, 68, 68, 0.08) !important;
-          border-color: rgba(239, 68, 68, 0.15) !important;
-          color: #ef4444 !important;
+        .logout-btn-hover:hover {
+          background-color: rgba(239, 68, 68, 0.1) !important;
+          border-color: rgba(239, 68, 68, 0.2) !important;
         }
       `}</style>
 
       <div style={sidebarStyle}>
-        <h2 style={logoStyle}>
-          <span style={{ color: "#2563eb", fontSize: "24px" }}>⚡</span>
-          <span>{portalName}</span>
-        </h2>
+        <div style={logoStyle}>{portalName}</div>
 
-        <nav style={navContainerStyle}>
+        <div style={navContainerStyle}>
           {currentMenu.map((item, index) => {
-            const isActive = location.pathname === item.path;
+            const isActive = item.endProp
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path);
+
             return (
               <NavLink
                 key={index}
                 to={item.path}
                 end={item.endProp}
-                className="sidebar-link"
+                className={({ isActive: navActive }) =>
+                  `sidebar-link ${navActive ? "active" : ""}`
+                }
               >
                 {item.icon(isActive)}
-                <span>{item.name}</span>
+                {item.name}
               </NavLink>
             );
           })}
-        </nav>
+        </div>
 
-        {/* FIXED: Attached onClick handler call to trigger storage removal and state routing */}
-        <button className="logout-btn" style={logoutButtonStyle} onClick={handleLogout}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          <span>Logout</span>
+        <button
+          onClick={handleLogout}
+          className="logout-btn-hover"
+          style={logoutButtonStyle}
+        >
+          Logout
         </button>
       </div>
     </>

@@ -940,6 +940,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { InventoryProvider } from "./Context/Inventorycontext";
 import { VendorProvider } from "./Context/Vendorcontext";
+import { AdminProvider } from "./Context/AdminContext";
 
 import Login from "./Dashboard/Login";
 
@@ -956,6 +957,15 @@ import BrowseProducts from "./pages/Vendor/BrowseProducts";
 import MyOrders from "./pages/Vendor/MyOrders";
 import RequestProduct from "./pages/Vendor/productRequest";
 import VendorProfile from "./pages/Vendor/Profile";
+
+import AdminLayout from "./Layout/Adminlayout"; 
+import AdminDashboardHome from "./pages/Admin/DashboardHome";
+import AdminSuppliers from "./pages/Admin/Suppliers";
+import AdminVendors from "./pages/Admin/Vendor"; 
+import AdminProducts from "./pages/Admin/Products";
+import AdminOrders from "./pages/Admin/Orders";
+import AdminProfile from "./pages/Admin/Profile";
+import AdminStockMonitoring from "./pages/Admin/StockMonitoring"; 
 
 export default function App() {
   return (
@@ -993,6 +1003,23 @@ export default function App() {
           <Route path="my-orders" element={<MyOrders />} />
           <Route path="request-product" element={<RequestProduct />} />
           <Route path="profile" element={<VendorProfile />} />
+        </Route>
+
+        <Route 
+          path="/admin/dashboard/*" 
+          element={
+            <AdminProvider>
+              <AdminLayout />
+            </AdminProvider>
+          }
+        >
+          <Route index element={<AdminDashboardHome />} />
+          <Route path="suppliers" element={<AdminSuppliers />} />
+          <Route path="vendors" element={<AdminVendors />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="stock-monitoring" element={<AdminStockMonitoring />} /> 
+          <Route path="profile" element={<AdminProfile />} />
         </Route>
 
         <Route path="/pages/Supplier/DashboardHome" element={<Navigate to="/supplier/dashboard" replace />} />

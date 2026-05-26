@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from database import engine, Base
 import models
 
-from routes import authroutes, Supplier, Vendor
+from routes import authroutes, Supplier, Vendor, Admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,7 +15,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Supplier & Vendor System API", lifespan=lifespan)
 
-# Maintained the enhanced CORS origins matrix to unblock browser preflight validation options
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -37,9 +36,9 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(authroutes.router, prefix="/auth")
 
-# RESTORED: Removed the duplicate outer path prefixes to resolve the double path duplication conflict
 app.include_router(Supplier.router)
 app.include_router(Vendor.router)
+app.include_router(Admin.router)
 
 @app.get("/")
 def root():

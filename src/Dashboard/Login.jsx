@@ -8,11 +8,9 @@ import API from "../Services/api";
 export default function LoginPage() {
   const navigate = useNavigate();
 
- 
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
 
- 
   const [showRegister, setShowRegister] = useState(false);
 
   const [registerMobile, setRegisterMobile] = useState("");
@@ -21,11 +19,9 @@ export default function LoginPage() {
   const [businessType, setBusinessType] = useState("");
   const [role, setRole] = useState("");
 
-  
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
- 
   const handleLogin = async () => {
     setError("");
 
@@ -48,25 +44,26 @@ export default function LoginPage() {
       });
 
       const data = response.data;
+      
+      // FIXED: Safeguard string extraction step against capitalized server properties ("Admin" / "ADMIN")
+      const userRole = data.role ? String(data.role).toLowerCase() : "";
 
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", userRole); // Stores forced lowercase format matching your AdminLayout verification check
+      localStorage.setItem("user_id", data.user_id);
 
-localStorage.setItem("token", data.token);
-localStorage.setItem("role", data.role);
-localStorage.setItem("user_id", data.user_id);
-
-
-if (data.role === "supplier") {
-  navigate("/supplier/dashboard");
-} 
-else if (data.role === "vendor") {
-  navigate("/vendor/dashboard");
-} 
-else if (data.role === "admin") {
-  navigate("/admin/dashboard");
-} 
-else {
-  setError("Invalid role");
-}
+      if (userRole === "supplier") {
+        navigate("/supplier/dashboard");
+      } 
+      else if (userRole === "vendor") {
+        navigate("/vendor/dashboard");
+      } 
+      else if (userRole === "admin") {
+        navigate("/admin/dashboard");
+      } 
+      else {
+        setError("Invalid role or permission profile context missing");
+      }
 
     } catch (err) {
       setError(
@@ -78,7 +75,6 @@ else {
       setLoading(false);
     }
   };
-
 
   const handleRegister = async (e) => {
     if (e) e.preventDefault();
@@ -111,11 +107,9 @@ else {
       });
 
       const data = response.data;
-
       
       alert(`Account created successfully\nUser ID: ${data.user_id}`);
 
-    
       setRegisterMobile("");
       setLocation("");
       setBusinessName("");
@@ -138,8 +132,6 @@ else {
 
   return (
     <div className="login-page">
-
-    
       <div className="login-container">
         <div className="login-left">
           <h1 className="login-title">
@@ -151,12 +143,8 @@ else {
         </div>
       </div>
 
-     
       <div className="login-right">
-
         <div className="login-form">
-
-         
           {!showRegister && (
             <>
               <h2>Login</h2>
@@ -193,7 +181,6 @@ else {
             </>
           )}
 
-         
           {showRegister && (
             <>
               <h2>Register</h2>
@@ -252,7 +239,6 @@ else {
             </>
           )}
 
-          
           <div className="login-link">
             {!showRegister ? (
               <p>
@@ -280,7 +266,6 @@ else {
               </p>
             )}
           </div>
-
         </div>
       </div>
     </div>

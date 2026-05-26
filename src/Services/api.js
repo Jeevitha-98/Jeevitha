@@ -14,10 +14,6 @@ API.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    if (config.url) {
-      config.url = config.url.toLowerCase();
-    }
-    
     return config;
   },
   (error) => Promise.reject(error)
