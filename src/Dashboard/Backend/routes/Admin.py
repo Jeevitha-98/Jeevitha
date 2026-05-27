@@ -128,8 +128,10 @@ def get_all_vendor_orders(db: Session = Depends(get_db), current_user: dict = De
         supplier = db.query(User).filter(User.user_id == r.supplier_id).first()
         s_name = supplier.business_name if supplier else "Unknown Supplier"
         
-        vendor = db.query(User).filter(User.user_id == r.vendor_id).first()
-        v_name = vendor.business_name if vendor else f"Vendor ({r.vendor_id})"
+        # FIXED: Look up using 'user_id' to match your MySQL 'vendor_requests' table data mapping schema
+        v_id = getattr(r, 'user_id', getattr(r, 'vendor_id', None))
+        vendor = db.query(User).filter(User.user_id == v_id).first() if v_id else None
+        v_name = vendor.business_name if vendor else f"Vendor ({v_id})"
         
         p_name = "Unknown Product"
         if hasattr(r, 'product_name') and r.product_name:

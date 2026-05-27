@@ -17,8 +17,8 @@ export default function Products() {
 
   if (loading) {
     return (
-      <div style={{ padding: "32px", textAlign: "center", color: "#64748b", fontFamily: "Inter, sans-serif" }}>
-        <p style={{ fontSize: "16px", fontWeight: "500" }}>
+      <div style={{ padding: "40px", textAlign: "center", color: "#64748b", fontFamily: "'Inter', sans-serif" }}>
+        <p style={{ fontSize: "15px", fontWeight: "500", letterSpacing: "0.01em" }}>
           Loading system product database registry...
         </p>
       </div>
@@ -43,145 +43,561 @@ export default function Products() {
 
     if (modalType === "approve") {
       setLocalStatuses((prev) => ({ ...prev, [pId]: "Approved" }));
-      logActivity(`Catalog Registry: Admin APPROVED item catalog listing for "${pName}" (ID: ${pId}).`, "Catalog", false);
+      logActivity(
+        `Catalog Registry: Admin APPROVED item catalog listing for "${pName}" (ID: ${pId}).`,
+        "Catalog",
+        false
+      );
     } else if (modalType === "reject") {
       setLocalStatuses((prev) => ({ ...prev, [pId]: "Rejected" }));
-      logActivity(`Catalog Registry: Admin REJECTED marketplace item catalog request for "${pName}" (ID: ${pId}).`, "Catalog", true);
+      logActivity(
+        `Catalog Registry: Admin REJECTED marketplace item catalog request for "${pName}" (ID: ${pId}).`,
+        "Catalog",
+        true
+      );
     } else if (modalType === "delete") {
       setHiddenProducts((prev) => {
         const next = new Set(prev);
         next.add(pId);
         return next;
       });
-      logActivity(`Data Purge: Admin DELETED product entry "${pName}" from global system tables.`, "Security", true);
+
+      logActivity(
+        `Data Purge: Admin DELETED product entry "${pName}" from global system tables.`,
+        "Security",
+        true
+      );
     }
 
     closeActionModal();
   };
 
   return (
-    <div style={{ padding: "32px", fontFamily: "'Inter', -apple-system, sans-serif", width: "100%", boxSizing: "border-box" }}>
-      
-      <div style={{ marginBottom: "28px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px" }}>
-        <div style={{ textAlign: "left" }}>
-          <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a", margin: "0 0 6px 0" }}>
-            Product Monitoring
-          </h1>
-          <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
-            Track across global supply catalogs, approve batch stock listings, or moderate inventory compliance.
+    <div className="products-management-view">
+      <style>{`
+        .products-management-view {
+          padding: 32px 40px;
+          width: 100%;
+          box-sizing: border-box;
+          background-color: #f8fafc;
+        }
+
+        .view-header-layout {
+          margin-bottom: 32px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 20px;
+        }
+
+        .title-text-group {
+          text-align: left;
+        }
+
+        .view-main-heading {
+          font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+          font-size: 26px;
+          font-weight: 700;
+          color: #0f172a !important;
+          margin: 0 0 6px 0;
+          letter-spacing: -0.025em !important;
+        }
+
+        .view-sub-heading {
+          font-size: 14px;
+          color: #64748b;
+          margin: 0;
+          line-height: 1.5;
+        }
+
+        .search-field-asset {
+          padding: 12px 18px;
+          width: 300px;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          background-color: #ffffff;
+          font-size: 14px;
+          outline: none;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          color: #1e293b;
+        }
+
+        .search-field-asset:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .table-surface-card {
+          background-color: #ffffff;
+          border-radius: 16px;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.02),
+            0 2px 4px -1px rgba(15, 23, 42, 0.02);
+          overflow: hidden;
+        }
+
+        .table-scroll-container {
+          overflow-x: auto;
+          width: 100%;
+        }
+
+        .formal-data-table {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: left;
+          font-size: 14px;
+        }
+
+        .formal-data-table th {
+          padding: 18px 24px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #475569;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          background-color: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .formal-data-table tr {
+          border-bottom: 1px solid #f1f5f9;
+          transition: background-color 0.2s ease;
+        }
+
+        .formal-data-table tr:last-child {
+          border-bottom: none;
+        }
+
+        .formal-data-table tr:hover {
+          background-color: #f8fafc;
+        }
+
+        .formal-data-table td {
+          padding: 16px 24px;
+          vertical-align: middle;
+          color: #334155;
+        }
+
+        .thumbnail-frame {
+          width: 48px;
+          height: 48px;
+          border-radius: 10px;
+          object-fit: cover;
+          border: 1px solid #e2e8f0;
+          background-color: #f8fafc;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .thumbnail-empty-state {
+          width: 48px;
+          height: 48px;
+          border-radius: 10px;
+          background-color: #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #94a3b8;
+          font-size: 11px;
+          font-weight: 700;
+          border: 1px solid #e2e8f0;
+        }
+
+        .item-identity-text {
+          font-weight: 600;
+          color: #0f172a;
+          font-size: 15px;
+        }
+
+        .supplier-identity-text {
+          color: #475569;
+          font-weight: 500;
+        }
+
+        .category-pill-tag {
+          display: inline-block;
+          background-color: #f1f5f9;
+          color: #475569;
+          padding: 4px 10px;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .capacity-indicator {
+          font-weight: 500;
+        }
+
+        .price-valuation-text {
+          font-weight: 700;
+          color: #0f172a;
+          font-size: 15px;
+        }
+
+        .status-pill-badge {
+          font-size: 12px;
+          font-weight: 600;
+          padding: 5px 12px;
+          border-radius: 20px;
+          display: inline-block;
+          letter-spacing: -0.01em;
+        }
+
+        .actions-flex-group {
+          display: flex;
+          gap: 6px;
+          justify-content: flex-end;
+          align-items: center;
+        }
+
+        .panel-action-btn {
+          padding: 8px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          outline: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .btn-view-style {
+          background-color: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #475569;
+        }
+
+        .btn-view-style:hover {
+          background-color: #f8fafc;
+          border-color: #cbd5e1;
+          color: #0f172a;
+        }
+
+        .btn-approve-style {
+          background-color: #10b981;
+          border: 1px solid transparent;
+          color: #ffffff;
+        }
+
+        .btn-approve-style:hover:not(:disabled) {
+          background-color: #059669;
+          box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-reject-style {
+          background-color: #f59e0b;
+          border: 1px solid transparent;
+          color: #ffffff;
+        }
+
+        .btn-reject-style:hover:not(:disabled) {
+          background-color: #d97706;
+          box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-delete-style {
+          background-color: #fee2e2;
+          border: 1px solid transparent;
+          color: #ef4444;
+        }
+
+        .btn-delete-style:hover {
+          background-color: #fca5a5;
+          color: #b91c1c;
+        }
+
+        .panel-action-btn:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+          box-shadow: none !important;
+        }
+
+        .empty-grid-fallback {
+          padding: 48px !important;
+          color: #94a3b8;
+          font-size: 15px;
+          text-align: center;
+          font-weight: 500;
+        }
+
+        .modal-blur-backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background-color: rgba(15, 23, 42, 0.3);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-surface-card {
+          background-color: #ffffff;
+          border-radius: 20px;
+          width: 480px;
+          padding: 32px;
+          box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2);
+          border: 1px solid #f1f5f9;
+          text-align: left;
+          animation: modalRevealAnimation 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalRevealAnimation {
+          from {
+            transform: scale(0.95) translateY(10px);
+            opacity: 0;
+          }
+
+          to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .modal-main-heading {
+          font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+          font-size: 20px;
+          font-weight: 700;
+          color: #0f172a !important;
+          margin: 0 0 16px 0;
+          letter-spacing: -0.025em !important;
+        }
+
+        .modal-specs-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          margin: 24px 0;
+          font-size: 14.5px;
+        }
+
+        .modal-spec-row {
+          display: flex;
+          justify-content: space-between;
+          padding-bottom: 10px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .modal-spec-row:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
+        }
+
+        .modal-meta-label {
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .modal-meta-value {
+          color: #0f172a;
+          font-weight: 600;
+        }
+
+        .modal-prompt-message {
+          font-size: 15px;
+          color: #475569;
+          line-height: 1.6;
+          margin: 16px 0 28px 0;
+        }
+
+        .modal-footer-actions {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          border-top: 1px solid #f1f5f9;
+          padding-top: 20px;
+        }
+
+        .modal-dialog-btn {
+          padding: 10px 20px;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .modal-btn-cancel {
+          background-color: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #475569;
+        }
+
+        .modal-btn-cancel:hover {
+          background-color: #f8fafc;
+          color: #0f172a;
+        }
+
+        .modal-btn-execution {
+          border: none;
+          color: #ffffff;
+        }
+      `}</style>
+
+      <div className="view-header-layout">
+        <div className="title-text-group">
+          <h1 className="view-main-heading">Product Monitoring</h1>
+          <p className="view-sub-heading">
+            Track across global supply catalogs, approve batch stock listings,
+            or moderate inventory compliance.
           </p>
         </div>
 
-        <div style={{ position: "relative" }}>
-          <input
-            type="text"
-            placeholder="Search items, category..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              padding: "10px 16px",
-              width: "280px",
-              borderRadius: "10px",
-              border: "1px solid #e2e8f0",
-              fontSize: "14px",
-              outline: "none",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
-            }}
-          />
-        </div>
+        <input
+          type="text"
+          className="search-field-asset"
+          placeholder="Search items, category..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
-      <div style={{ backgroundColor: "#ffffff", borderRadius: "14px", border: "1px solid #f1f5f9", boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)", overflow: "hidden" }}>
-        <div style={{ overflowX: "auto", width: "100%" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+      <div className="table-surface-card">
+        <div className="table-scroll-container">
+          <table className="formal-data-table">
             <thead>
-              <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Product Image</th>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Product Name</th>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Supplier Name</th>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Category</th>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Stock</th>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Price</th>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase" }}>Status</th>
-                <th style={{ padding: "16px 24px", fontSize: "12px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", textAlign: "right" }}>Actions</th>
+              <tr>
+                <th>Product Image</th>
+                <th>Product Name</th>
+                <th>Supplier Name</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th style={{ textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => {
-                  const currentStatus = localStatuses[product.id] || "Pending Verification";
+                  const currentStatus =
+                    localStatuses[product.id] || "Pending Verification";
+
+                  const isOutOfStock =
+                    parseInt(product.stock || 0, 10) === 0;
+
+                  let badgeBg = "#fffbeb";
+                  let badgeColor = "#d97706";
+
+                  if (currentStatus === "Approved") {
+                    badgeBg = "#ecfdf5";
+                    badgeColor = "#10b981";
+                  } else if (currentStatus === "Rejected") {
+                    badgeBg = "#fee2e2";
+                    badgeColor = "#ef4444";
+                  }
 
                   return (
-                    <tr key={product.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                      <td style={{ padding: "16px 24px" }}>
+                    <tr key={product.id}>
+                      <td>
                         {product.image ? (
                           <img
                             src={product.image}
                             alt={product.name}
-                            style={{
-                              width: "44px",
-                              height: "44px",
-                              borderRadius: "8px",
-                              objectFit: "cover",
-                              border: "1px solid #e2e8f0"
-                            }}
+                            className="thumbnail-frame"
                           />
                         ) : (
-                          <div style={{
-                            width: "44px",
-                            height: "44px",
-                            borderRadius: "8px",
-                            backgroundColor: "#f1f5f9",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "#94a3b8",
-                            fontSize: "11px",
-                            fontWeight: "600"
-                          }}>
+                          <div className="thumbnail-empty-state">
                             NO IMG
                           </div>
                         )}
                       </td>
 
-                      <td style={{ padding: "16px 24px", fontWeight: "600" }}>{product.name}</td>
-                      <td style={{ padding: "16px 24px" }}>{product.supplier_id || "Global Supplier"}</td>
-                      <td style={{ padding: "16px 24px" }}>{product.category}</td>
-                      <td style={{ padding: "16px 24px" }}>
-                        {product.stock === 0 ? "Out of Stock" : `${product.stock} units`}
-                      </td>
-                      <td style={{ padding: "16px 24px", fontWeight: "600" }}>
-                        ₹{Number(product.price).toFixed(2)}
+                      <td>
+                        <span className="item-identity-text">
+                          {product.name}
+                        </span>
                       </td>
 
-                      <td style={{ padding: "16px 24px" }}>
-                        <span style={{
-                          fontSize: "11px",
-                          fontWeight: "600",
-                          padding: "4px 10px",
-                          borderRadius: "12px",
-                          backgroundColor: currentStatus === "Approved"
-                            ? "#ecfdf5"
-                            : currentStatus === "Rejected"
-                            ? "#fee2e2"
-                            : "#fffbeb",
-                          color: currentStatus === "Approved"
-                            ? "#10b981"
-                            : currentStatus === "Rejected"
-                            ? "#ef4444"
-                            : "#f59e0b"
-                        }}>
+                      <td>
+                        <span className="supplier-identity-text">
+                          {product.supplier_id || "Global Supplier"}
+                        </span>
+                      </td>
+
+                      <td>
+                        <span className="category-pill-tag">
+                          {product.category || "General"}
+                        </span>
+                      </td>
+
+                      <td
+                        className="capacity-indicator"
+                        style={{
+                          color: isOutOfStock ? "#ef4444" : "#334155",
+                          fontWeight: isOutOfStock ? "600" : "500",
+                        }}
+                      >
+                        {isOutOfStock
+                          ? "Out of Stock"
+                          : `${product.stock} units`}
+                      </td>
+
+                      <td>
+                        <span className="price-valuation-text">
+                          ₹{Number(product.price).toFixed(2)}
+                        </span>
+                      </td>
+
+                      <td>
+                        <span
+                          className="status-pill-badge"
+                          style={{
+                            backgroundColor: badgeBg,
+                            color: badgeColor,
+                          }}
+                        >
                           {currentStatus}
                         </span>
                       </td>
 
-                      <td style={{ padding: "16px 24px", textAlign: "right" }}>
-                        <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
-                          <button onClick={() => openActionModal(product, "view")}>View</button>
-                          <button onClick={() => openActionModal(product, "approve")}>Approve</button>
-                          <button onClick={() => openActionModal(product, "reject")}>Reject</button>
-                          <button onClick={() => openActionModal(product, "delete")}>Delete</button>
+                      <td>
+                        <div className="actions-flex-group">
+                          <button
+                            className="panel-action-btn btn-view-style"
+                            onClick={() =>
+                              openActionModal(product, "view")
+                            }
+                          >
+                            View
+                          </button>
+
+                          <button
+                            className="panel-action-btn btn-approve-style"
+                            onClick={() =>
+                              openActionModal(product, "approve")
+                            }
+                            disabled={currentStatus === "Approved"}
+                          >
+                            Approve
+                          </button>
+
+                          <button
+                            className="panel-action-btn btn-reject-style"
+                            onClick={() =>
+                              openActionModal(product, "reject")
+                            }
+                            disabled={currentStatus === "Rejected"}
+                          >
+                            Reject
+                          </button>
+
+                          <button
+                            className="panel-action-btn btn-delete-style"
+                            onClick={() =>
+                              openActionModal(product, "delete")
+                            }
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -189,8 +605,9 @@ export default function Products() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} style={{ padding: "48px", textAlign: "center" }}>
-                    No product entries found inside system master inventory listing database.
+                  <td colSpan="8" className="empty-grid-fallback">
+                    No product entries found inside system master inventory
+                    listing database.
                   </td>
                 </tr>
               )}
@@ -200,33 +617,165 @@ export default function Products() {
       </div>
 
       {modalType && selectedProduct && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh" }}>
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "14px", width: "460px", padding: "28px" }}>
-            <h3>
+        <div
+          className="modal-blur-backdrop"
+          onClick={closeActionModal}
+        >
+          <div
+            className="modal-surface-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="modal-main-heading">
               {modalType === "view"
-                ? "Catalog Product Specification View"
+                ? "Catalog Product Specification"
                 : `${modalType} Item Record`}
-            </h3>
+            </h2>
 
             {modalType === "view" ? (
-              <div>
-                <div>ID: {selectedProduct.id}</div>
-                <div>Name: {selectedProduct.name}</div>
-                <div>Category: {selectedProduct.category}</div>
-                <div>Supplier: {selectedProduct.supplier_id}</div>
-                <div>Stock: {selectedProduct.stock}</div>
-                <div>Price: ₹{Number(selectedProduct.price).toFixed(2)}</div>
-                <div>Status: {localStatuses[selectedProduct.id] || "Pending Verification"}</div>
-              </div>
+              <>
+                {selectedProduct.image && (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <img
+                      src={selectedProduct.image}
+                      alt={selectedProduct.name}
+                      style={{
+                        maxWidth: "140px",
+                        maxHeight: "140px",
+                        borderRadius: "12px",
+                        objectFit: "cover",
+                        border: "1px solid #e2e8f0",
+                        boxShadow:
+                          "0 4px 6px -1px rgba(0,0,0,0.05)",
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="modal-specs-list">
+                  <div className="modal-spec-row">
+                    <span className="modal-meta-label">
+                      Item Registry ID:
+                    </span>
+                    <span className="modal-meta-value">
+                      #{selectedProduct.id}
+                    </span>
+                  </div>
+
+                  <div className="modal-spec-row">
+                    <span className="modal-meta-label">
+                      Product Designation:
+                    </span>
+                    <span className="modal-meta-value">
+                      {selectedProduct.name}
+                    </span>
+                  </div>
+
+                  <div className="modal-spec-row">
+                    <span className="modal-meta-label">
+                      Category Context:
+                    </span>
+                    <span className="modal-meta-value">
+                      {selectedProduct.category || "General"}
+                    </span>
+                  </div>
+
+                  <div className="modal-spec-row">
+                    <span className="modal-meta-label">
+                      Origin Supplier:
+                    </span>
+                    <span className="modal-meta-value">
+                      {selectedProduct.supplier_id || "N/A"}
+                    </span>
+                  </div>
+
+                  <div className="modal-spec-row">
+                    <span className="modal-meta-label">
+                      Current Stock Level:
+                    </span>
+                    <span className="modal-meta-value">
+                      {selectedProduct.stock} units
+                    </span>
+                  </div>
+
+                  <div className="modal-spec-row">
+                    <span className="modal-meta-label">
+                      Market Pricing:
+                    </span>
+                    <span className="modal-meta-value">
+                      ₹{Number(selectedProduct.price).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="modal-spec-row">
+                    <span className="modal-meta-label">
+                      Compliance Status:
+                    </span>
+
+                    <span
+                      className="modal-meta-value"
+                      style={{ color: "#3b82f6" }}
+                    >
+                      {localStatuses[selectedProduct.id] ||
+                        "Pending Verification"}
+                    </span>
+                  </div>
+                </div>
+              </>
             ) : (
-              <div>
-                <button onClick={() => handleConfirmAction("approve")}>Approve</button>
-                <button onClick={() => handleConfirmAction("reject")}>Reject</button>
-                <button onClick={() => handleConfirmAction("delete")}>Delete</button>
-              </div>
+              <p className="modal-prompt-message">
+                Are you sure you want to proceed with executing the item
+                modification task to{" "}
+                <strong
+                  style={{
+                    color:
+                      modalType === "delete" ||
+                      modalType === "reject"
+                        ? "#ef4444"
+                        : "#10b981",
+                  }}
+                >
+                  [
+                  {modalType === "delete"
+                    ? "Permanently Removed"
+                    : modalType === "approve"
+                    ? "Approved"
+                    : "Rejected"}
+                  ]
+                </strong>{" "}
+                for database item entry "
+                {selectedProduct.name}" (ID: {selectedProduct.id})?
+              </p>
             )}
 
-            <button onClick={closeActionModal}>Close</button>
+            <div className="modal-footer-actions">
+              <button
+                className="modal-dialog-btn modal-btn-cancel"
+                onClick={closeActionModal}
+              >
+                {modalType === "view" ? "Close" : "Cancel"}
+              </button>
+
+              {modalType !== "view" && (
+                <button
+                  className="modal-dialog-btn modal-btn-execution"
+                  onClick={handleConfirmAction}
+                  style={{
+                    backgroundColor:
+                      modalType === "delete" ||
+                      modalType === "reject"
+                        ? "#ef4444"
+                        : "#10b981",
+                  }}
+                >
+                  Confirm Action
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

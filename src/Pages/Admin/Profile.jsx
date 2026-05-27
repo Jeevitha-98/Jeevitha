@@ -41,7 +41,6 @@ export default function Profile() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // NOTE: Ensure your adminService has a matching updateProfile(formData) method implemented
       const response = await adminService.updateProfile ? await adminService.updateProfile(formData) : { status: true };
       if (response.status || response) {
         toast.success("Admin profile updates committed to database successfully!");
@@ -58,153 +57,174 @@ export default function Profile() {
     }
   };
 
-  const headerWrapperStyle = {
-    fontFamily: "'Inter', sans-serif",
-    marginBottom: "32px",
-    borderBottom: "1px solid #f1f5f9",
-    paddingBottom: "16px",
-    textAlign: "left"
-  };
-
-  const mainHeadingStyle = {
-    margin: "0 0 6px 0",
-    fontSize: "26px",
-    fontWeight: "700",
-    color: "#0f172a",
-    letterSpacing: "-0.02em"
-  };
-
-  const subHeadingStyle = {
-    margin: 0,
-    fontSize: "14px",
-    color: "#64748b",
-    fontWeight: "400"
-  };
-
-  const gridContainerStyle = {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "32px",
-    width: "100%",
-    boxSizing: "border-box",
-    fontFamily: "'Inter', sans-serif"
-  };
-
-  const leftActionPanelStyle = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-    height: "fit-content"
-  };
-
-  const darkCardBoxStyle = {
-    backgroundColor: "#111827",
-    padding: "32px 24px",
-    borderRadius: "16px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-    border: "1px solid #1f2937",
-    boxSizing: "border-box",
-    width: "100%"
-  };
-
-  const profileImageStyle = {
-    width: "80px",
-    height: "80px",
-    borderRadius: "50%",
-    border: "3px solid rgba(255, 255, 255, 0.2)",
-    objectFit: "cover",
-    marginBottom: "16px",
-    backgroundColor: "#1f2937"
-  };
-
-  const darkCardTitleStyle = {
-    margin: 0,
-    fontSize: "20px",
-    fontWeight: "700",
-    color: "#ffffff",
-    letterSpacing: "-0.01em",
-    lineHeight: "1.3"
-  };
-
-  const darkCardSubtitleStyle = {
-    margin: "6px 0 0 0",
-    fontSize: "14px",
-    color: "#9ca3af",
-    fontWeight: "500"
-  };
-
-  const detailsContainerStyle = {
-    background: "#ffffff",
-    padding: "36px",
-    borderRadius: "16px",
-    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
-    border: "1px solid #e2e8f0",
-    boxSizing: "border-box",
-  };
-
-  const titleStyle = {
-    margin: "0 0 24px 0",
-    fontSize: "18px",
-    fontWeight: "700",
-    color: "#0f172a",
-    letterSpacing: "-0.01em",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px"
-  };
-
-  const itemStyle = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-    padding: "14px 16px",
-    borderRadius: "10px",
-    backgroundColor: "#f8fafc",
-    marginBottom: "12px",
-    border: "1px solid #f1f5f9",
-    boxSizing: "border-box",
-    textAlign: "left"
-  };
-
-  const labelStyle = {
-    fontSize: "12px",
-    color: "#64748b",
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em"
-  };
-
-  const valueStyle = {
-    fontSize: "15px",
-    color: "#0f172a",
-    fontWeight: "600"
-  };
-
   return (
     <PageContainer>
-      <div style={headerWrapperStyle}>
-        <h2 style={mainHeadingStyle}>Admin Profile</h2>
-        <p style={subHeadingStyle}>Manage your administrative system profile credentials and account identities.</p>
+      <style>{`
+        .profile-header-wrapper {
+          font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+          margin-bottom: 32px;
+          border-bottom: 1px solid #f1f5f9;
+          padding-bottom: 16px;
+          text-align: left;
+        }
+
+        .profile-main-heading {
+          margin: 0 0 6px 0;
+          font-size: 26px;
+          font-weight: 700;
+          color: #0f172a;
+          letter-spacing: -0.02em;
+        }
+
+        .profile-sub-heading {
+          margin: 0;
+          font-size: 14px;
+          color: #64748b;
+          font-weight: 400;
+        }
+
+        .profile-grid-container {
+          display: grid;
+          grid-template-columns: 1fr 1.8fr;
+          gap: 32px;
+          width: 100%;
+          box-sizing: border-box;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .profile-left-panel {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          height: fit-content;
+        }
+
+        .profile-dark-card {
+          background-color: #111827;
+          padding: 32px 24px;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          border: 1px solid #1f2937;
+          box-sizing: border-box;
+          width: 100%;
+        }
+
+        .profile-avatar-img {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          border: 3px solid rgba(255, 255, 255, 0.2);
+          object-fit: cover;
+          margin-bottom: 16px;
+          background-color: #1f2937;
+        }
+
+        .profile-dark-title {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 700;
+          color: #ffffff;
+          letter-spacing: -0.01em;
+          line-height: 1.3;
+        }
+
+        .profile-dark-subtitle {
+          margin: "6px 0 0 0";
+          font-size: 14px;
+          color: #9ca3af;
+          font-weight: 500;
+        }
+
+        .profile-details-card {
+          background: #ffffff;
+          padding: 36px;
+          border-radius: 16px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+          border: 1px solid #e2e8f0;
+          box-sizing: border-box;
+        }
+
+        .profile-panel-title {
+          margin: 0 0 24px 0;
+          font-size: 18px;
+          font-weight: 700;
+          color: #0f172a;
+          letter-spacing: -0.01em;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-align: left;
+        }
+
+        .profile-info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 14px 16px;
+          border-radius: 10px;
+          background-color: #f8fafc;
+          margin-bottom: 12px;
+          border: 1px solid #f1f5f9;
+          box-sizing: border-box;
+          text-align: left;
+        }
+
+        .profile-info-label {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .profile-info-value {
+          font-size: 15px;
+          color: #0f172a;
+          font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+          .profile-grid-container {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .profile-management-container {
+            padding: 20px;
+          }
+          .profile-details-card {
+            padding: 24px;
+          }
+          .profile-main-heading {
+            font-size: 22px;
+          }
+        }
+      `}</style>
+
+      <div className="profile-header-wrapper">
+        <h2 className="profile-main-heading">Admin Profile</h2>
+        <p className="profile-sub-heading">Manage your administrative system profile credentials and account identities.</p>
       </div>
 
-      <div style={gridContainerStyle}>
-        
-        <div style={leftActionPanelStyle}>
-          <div style={darkCardBoxStyle}>
+      <div className="profile-grid-container">
+        <div className="profile-left-panel">
+          <div className="profile-dark-card">
             <img 
               src={profileIconImage} 
               alt="Admin Profile" 
-              style={profileImageStyle} 
+              className="profile-avatar-img" 
             />
-            <h3 style={darkCardTitleStyle}>
+            <h3 className="profile-dark-title">
               {profile?.business_name || profile?.name || "System Admin"}
             </h3>
-            <p style={darkCardSubtitleStyle}>
+            <p className="profile-dark-subtitle">
               ({profile?.user_id || profile?.uid || "Checking ID..."})
             </p>
           </div>
@@ -225,29 +245,29 @@ export default function Profile() {
           </Button>
         </div>
 
-        <div style={detailsContainerStyle}>
-          <h3 style={titleStyle}>
+        <div className="profile-details-card">
+          <h3 className="profile-panel-title">
             <span style={{ fontSize: "20px" }}>📋</span> Profile Information
           </h3>
           
-          <div style={itemStyle}>
-            <span style={labelStyle}>User Access ID</span>
-            <span style={valueStyle}>{profile?.user_id || profile?.uid || "Verifying Access..."}</span>
+          <div className="profile-info-item">
+            <span className="profile-info-label">User Access ID</span>
+            <span className="profile-info-value">{profile?.user_id || profile?.uid || "Verifying Access..."}</span>
           </div>
           
-          <div style={itemStyle}>
-            <span style={labelStyle}>Mobile Number</span>
-            <span style={valueStyle}>{profile?.mobile || "Not Provided"}</span>
+          <div className="profile-info-item">
+            <span className="profile-info-label">Mobile Number</span>
+            <span className="profile-info-value">{profile?.mobile || "Not Provided"}</span>
           </div>
           
-          <div style={itemStyle}>
-            <span style={labelStyle}>Display Name</span>
-            <span style={valueStyle}>{profile?.business_name || profile?.name || "Not Provided"}</span>
+          <div className="profile-info-item">
+            <span className="profile-info-label">Display Name</span>
+            <span className="profile-info-value">{profile?.business_name || profile?.name || "Not Provided"}</span>
           </div>
 
-          <div style={itemStyle}>
-            <span style={labelStyle}>System Role Profile</span>
-            <span style={valueStyle}>Master Platform Administrator</span>
+          <div className="profile-info-item">
+            <span className="profile-info-label">System Role Profile</span>
+            <span className="profile-info-value">Master Platform Administrator</span>
           </div>
         </div>
       </div>
@@ -281,7 +301,7 @@ export default function Profile() {
               onClick={handleSave} 
               disabled={isSaving}
             >
-              {isSaving ? "Saving Changes..." : "Save Updates"}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </div>
