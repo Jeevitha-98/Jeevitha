@@ -37,6 +37,16 @@ export default function Profile() {
     }
   }, [profile]);
 
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleEdit = (e) => {
     if (e) e.stopPropagation();
     if (profile) {
@@ -51,30 +61,36 @@ export default function Profile() {
   };
 
   const handleSave = async (e) => {
-    if (e) e.stopPropagation();
+    if (e) e.preventDefault();
     setIsSaving(true);
+
     try {
       const response = await supplierService.updateProfileDetails(formData);
+
       if (response.status || response) {
-        toast.success("your changes are changed safely");
+        toast.success("Profile credentials updated successfully.");
         setIsOpen(false);
+
         if (refreshDashboardData) {
           await refreshDashboardData();
         }
       }
     } catch (err) {
-      console.error("Failed to sync profile changes down to server:", err);
-      toast.error("Failed to commit profile updates to server.");
+      console.error("Failed to sync profile changes:", err);
+      toast.error("Failed to save profile changes.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleChangePassword = async (e) => {
-    e.preventDefault();
-    if (e) e.stopPropagation();
+    if (e) e.preventDefault();
 
-    if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    if (
+      !passwordData.oldPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
       toast.error("Please fill out all password fields.");
       return;
     }
@@ -85,32 +101,38 @@ export default function Profile() {
     }
 
     setIsPasswordSaving(true);
+
     try {
       const response = await supplierService.updatePassword({
         old_password: passwordData.oldPassword,
-        new_password: passwordData.newPassword
+        new_password: passwordData.newPassword,
       });
 
       if (response.status || response) {
-        toast.success("your changes are changed safely");
+        toast.success("Password updated successfully.");
         setIsPasswordOpen(false);
-        setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setPasswordData({
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
       }
     } catch (err) {
       console.error("Password modification process fault:", err);
-      toast.error(err.response?.data?.detail || "Failed to change password.");
+      toast.error(
+        err.response?.data?.detail || "Failed to change password."
+      );
     } finally {
       setIsPasswordSaving(false);
     }
   };
 
-  // Layout presentation tokens
   const headerWrapperStyle = {
     fontFamily: "'Inter', sans-serif",
     marginBottom: "32px",
     borderBottom: "1px solid #f1f5f9",
     paddingBottom: "16px",
-    textAlign: "left"
+    textAlign: "left",
   };
 
   const mainHeadingStyle = {
@@ -118,14 +140,14 @@ export default function Profile() {
     fontSize: "26px",
     fontWeight: "700",
     color: "#0f172a",
-    letterSpacing: "-0.02em"
+    letterSpacing: "-0.02em",
   };
 
   const subHeadingStyle = {
     margin: 0,
     fontSize: "14px",
     color: "#64748b",
-    fontWeight: "400"
+    fontWeight: "400",
   };
 
   const gridContainerStyle = {
@@ -134,18 +156,17 @@ export default function Profile() {
     gap: "32px",
     width: "100%",
     boxSizing: "border-box",
-    fontFamily: "'Inter', sans-serif"
+    fontFamily: "'Inter', sans-serif",
   };
 
   const leftActionPanelStyle = {
     display: "flex",
     flexDirection: "column",
-    gap: "0px",
-    height: "fit-content"
+    height: "fit-content",
   };
 
   const darkCardBoxStyle = {
-    backgroundColor: "#111827", 
+    backgroundColor: "#111827",
     padding: "32px 24px",
     borderRadius: "16px",
     display: "flex",
@@ -153,10 +174,10 @@ export default function Profile() {
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
-    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
     border: "1px solid #1f2937",
     boxSizing: "border-box",
-    width: "100%"
+    width: "100%",
   };
 
   const profileImageStyle = {
@@ -166,7 +187,7 @@ export default function Profile() {
     border: "3px solid rgba(255, 255, 255, 0.2)",
     objectFit: "cover",
     marginBottom: "16px",
-    backgroundColor: "#1f2937"
+    backgroundColor: "#1f2937",
   };
 
   const darkCardTitleStyle = {
@@ -174,22 +195,21 @@ export default function Profile() {
     fontSize: "20px",
     fontWeight: "700",
     color: "#ffffff",
-    letterSpacing: "-0.01em",
-    lineHeight: "1.3"
+    lineHeight: "1.3",
   };
 
   const darkCardSubtitleStyle = {
     margin: "6px 0 0 0",
     fontSize: "14px",
     color: "#9ca3af",
-    fontWeight: "500"
+    fontWeight: "500",
   };
 
   const detailsContainerStyle = {
     background: "#ffffff",
     padding: "36px",
     borderRadius: "16px",
-    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
     border: "1px solid #e2e8f0",
     boxSizing: "border-box",
   };
@@ -199,10 +219,6 @@ export default function Profile() {
     fontSize: "18px",
     fontWeight: "700",
     color: "#0f172a",
-    letterSpacing: "-0.01em",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px"
   };
 
   const itemStyle = {
@@ -215,21 +231,21 @@ export default function Profile() {
     marginBottom: "12px",
     border: "1px solid #f1f5f9",
     boxSizing: "border-box",
-    textAlign: "left"
+    textAlign: "left",
   };
 
   const labelStyle = {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#64748b",
     fontWeight: "600",
     textTransform: "uppercase",
-    letterSpacing: "0.05em"
+    letterSpacing: "0.05em",
   };
 
   const valueStyle = {
     fontSize: "15px",
     color: "#0f172a",
-    fontWeight: "600"
+    fontWeight: "600",
   };
 
   const modalOverlayStyle = {
@@ -238,12 +254,12 @@ export default function Profile() {
     left: 0,
     width: "100vw",
     height: "100vh",
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     backdropFilter: "blur(4px)",
-    zIndex: 99999, 
+    zIndex: 99999,
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   };
 
   const modalBodyStyle = {
@@ -252,7 +268,8 @@ export default function Profile() {
     padding: "32px",
     width: "440px",
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-    textAlign: "left"
+    textAlign: "left",
+    fontFamily: "'Inter', sans-serif",
   };
 
   const inputStyle = {
@@ -264,101 +281,270 @@ export default function Profile() {
     fontSize: "14px",
     boxSizing: "border-box",
     marginTop: "6px",
-    marginBottom: "16px"
+    marginBottom: "16px",
+  };
+
+  const btnFlexStyle = {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "12px",
+    marginTop: "8px",
   };
 
   return (
     <PageContainer>
       <div style={headerWrapperStyle}>
         <h2 style={mainHeadingStyle}>My Profile</h2>
-        <p style={subHeadingStyle}>Manage your supplier profile credentials and business location information.</p>
+        <p style={subHeadingStyle}>
+          Manage your supplier profile credentials and business location
+          information.
+        </p>
       </div>
 
       <div style={gridContainerStyle}>
-        
         <div style={leftActionPanelStyle}>
           <div style={darkCardBoxStyle}>
-            <img src={profileIconImage} alt="Supplier Avatar" style={profileImageStyle} />
-            <h3 style={darkCardTitleStyle}>{profile?.business_name || "Loading..."}</h3>
-            <p style={darkCardSubtitleStyle}>({profile?.user_id || "Checking ID..."})</p>
+            <img
+              src={profileIconImage}
+              alt="Supplier Avatar"
+              style={profileImageStyle}
+            />
+            <h3 style={darkCardTitleStyle}>
+              {profile?.business_name || "Loading..."}
+            </h3>
+            <p style={darkCardSubtitleStyle}>
+              ID: {profile?.user_id || "Checking ID..."}
+            </p>
           </div>
 
-          <button 
-            onClick={handleEdit} 
-            style={{ 
-              width: "100%", height: "44px", marginTop: "16px", backgroundColor: "#3b82f6", color: "#ffffff", 
-              border: "none", borderRadius: "8px", fontWeight: "600", cursor: "pointer", fontSize: "14px",
-              boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)" 
+          <button
+            onClick={handleEdit}
+            style={{
+              width: "100%",
+              height: "44px",
+              marginTop: "16px",
+              backgroundColor: "#3b82f6",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "14px",
             }}
           >
             Edit Profile Credentials
           </button>
 
-          <button 
-            onClick={() => setIsPasswordOpen(true)} 
-            style={{ 
-              width: "100%", height: "44px", marginTop: "14px", backgroundColor: "#ffffff", color: "#1f2937", 
-              border: "1px solid #cbd5e1", borderRadius: "8px", fontWeight: "600", cursor: "pointer", fontSize: "14px",
-              boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+          <button
+            onClick={() => setIsPasswordOpen(true)}
+            style={{
+              width: "100%",
+              height: "44px",
+              marginTop: "14px",
+              backgroundColor: "#ffffff",
+              color: "#1f2937",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "14px",
             }}
           >
-            🔄 Change Password
+            Change Security Password
           </button>
         </div>
 
         <div style={detailsContainerStyle}>
-          <h3 style={titleStyle}>
-            <span style={{ fontSize: "20px" }}>📋</span> Profile Information
-          </h3>
+          <h3 style={titleStyle}>Business Specifications</h3>
 
           <div style={itemStyle}>
-            <span style={labelStyle}>User Access ID</span>
-            <span style={valueStyle}>{profile?.user_id || "Verifying Access..."}</span>
+            <span style={labelStyle}>Business Name</span>
+            <span style={valueStyle}>{profile?.business_name || "—"}</span>
+          </div>
+
+          <div style={itemStyle}>
+            <span style={labelStyle}>Business Type</span>
+            <span style={valueStyle}>{profile?.business_type || "—"}</span>
+          </div>
+
+          <div style={itemStyle}>
+            <span style={labelStyle}>Location / Address</span>
+            <span style={valueStyle}>{profile?.location || "—"}</span>
           </div>
 
           <div style={itemStyle}>
             <span style={labelStyle}>Mobile Number</span>
-            <span style={valueStyle}>{profile?.mobile || "Not Provided"}</span>
-          </div>
-
-          <div style={itemStyle}>
-            <span style={labelStyle}>Registered Business</span>
-            <span style={valueStyle}>{profile?.business_name || "Not Provided"}</span>
-          </div>
-
-          <div style={itemStyle}>
-            <span style={labelStyle}>Business Category</span>
-            <span style={valueStyle}>{profile?.business_type || "Not Provided"}</span>
-          </div>
-
-          <div style={itemStyle}>
-            <span style={labelStyle}>Operation Location</span>
-            <span style={valueStyle}>{profile?.location || "Not Provided"}</span>
+            <span style={valueStyle}>{profile?.mobile || "—"}</span>
           </div>
         </div>
       </div>
 
       {isOpen && (
-        <div style={modalOverlayStyle} onClick={() => setIsOpen(false)}>
-          <div style={modalBodyStyle} onClick={(e) => e.stopPropagation()}>
-            <h3>Edit Profile Details</h3>
-            <input value={formData.business_name} onChange={(e) => setFormData({...formData, business_name: e.target.value})} style={inputStyle} />
-            <input value={formData.business_type} onChange={(e) => setFormData({...formData, business_type: e.target.value})} style={inputStyle} />
-            <input value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} style={inputStyle} />
-            <input value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} style={inputStyle} />
-            <button onClick={handleSave}>Save</button>
+        <div style={modalOverlayStyle}>
+          <div style={modalBodyStyle}>
+            <h3
+              style={{
+                margin: "0 0 20px 0",
+                fontSize: "18px",
+                fontWeight: "700",
+                color: "#0f172a",
+              }}
+            >
+              Update Credentials
+            </h3>
+
+            <form onSubmit={handleSave}>
+              <label style={labelStyle}>Business Name</label>
+              <input
+                type="text"
+                name="business_name"
+                value={formData.business_name}
+                onChange={handleProfileChange}
+                style={inputStyle}
+                required
+              />
+
+              <label style={labelStyle}>Business Type</label>
+              <input
+                type="text"
+                name="business_type"
+                value={formData.business_type}
+                onChange={handleProfileChange}
+                style={inputStyle}
+                required
+              />
+
+              <label style={labelStyle}>Location</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleProfileChange}
+                style={inputStyle}
+                required
+              />
+
+              <label style={labelStyle}>Mobile</label>
+              <input
+                type="text"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleProfileChange}
+                style={inputStyle}
+                required
+              />
+
+              <div style={btnFlexStyle}>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "1px solid #cbd5e1",
+                    backgroundColor: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "none",
+                    backgroundColor: "#3b82f6",
+                    color: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {isPasswordOpen && (
-        <div style={modalOverlayStyle} onClick={() => setIsPasswordOpen(false)}>
-          <div style={modalBodyStyle} onClick={(e) => e.stopPropagation()}>
-            <h3>Change Password</h3>
-            <input type="password" value={passwordData.oldPassword} onChange={(e) => setPasswordData({...passwordData, oldPassword: e.target.value})} />
-            <input type="password" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} />
-            <input type="password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} />
-            <button onClick={handleChangePassword}>Change</button>
+        <div style={modalOverlayStyle}>
+          <div style={modalBodyStyle}>
+            <h3
+              style={{
+                margin: "0 0 20px 0",
+                fontSize: "18px",
+                fontWeight: "700",
+                color: "#0f172a",
+              }}
+            >
+              Change Password
+            </h3>
+
+            <form onSubmit={handleChangePassword}>
+              <label style={labelStyle}>Current Password</label>
+              <input
+                type="password"
+                name="oldPassword"
+                value={passwordData.oldPassword}
+                onChange={handlePasswordChange}
+                style={inputStyle}
+                required
+              />
+
+              <label style={labelStyle}>New Password</label>
+              <input
+                type="password"
+                name="newPassword"
+                value={passwordData.newPassword}
+                onChange={handlePasswordChange}
+                style={inputStyle}
+                required
+              />
+
+              <label style={labelStyle}>Confirm New Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={passwordData.confirmPassword}
+                onChange={handlePasswordChange}
+                style={inputStyle}
+                required
+              />
+
+              <div style={btnFlexStyle}>
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordOpen(false)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "1px solid #cbd5e1",
+                    backgroundColor: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isPasswordSaving}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "6px",
+                    border: "none",
+                    backgroundColor: "#10b981",
+                    color: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isPasswordSaving ? "Updating..." : "Update Password"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
