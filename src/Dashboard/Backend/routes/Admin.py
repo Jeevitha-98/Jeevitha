@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import get_db
 import models
-from models import User, Product, VendorRequest
+from models import User, Product, VendorRequest, Notification
 
 router = APIRouter(prefix="/admin", tags=["Admin Operations"])
 
@@ -22,7 +22,6 @@ ALGORITHM = "HS256"
 class AdminOrderStatusUpdate(BaseModel):
     status: str
 
-# Added missing Pydantic schemas required to accept profile parameters from the request payload
 class ProfileUpdateRequest(BaseModel):
     business_name: str
     mobile: str
@@ -86,7 +85,6 @@ def get_admin_profile(db: Session = Depends(get_db), current_user: dict = Depend
         "business_type": b_type
     }
 
-# FIXED: Appended profile update target route to resolve frontend 404 connection drops
 @router.put("/profile/update")
 def update_admin_profile_data(
     payload: ProfileUpdateRequest, 
@@ -108,7 +106,6 @@ def update_admin_profile_data(
     db.commit()
     return {"status": True, "message": "Profile properties synced to MySQL ledger records successfully."}
 
-# FIXED: Appended profile password change target route to resolve frontend connection drops
 @router.put("/profile/password")
 def update_admin_password_credentials(
     payload: PasswordUpdateRequest, 
@@ -183,11 +180,11 @@ def get_all_vendor_orders(db: Session = Depends(get_db), current_user: dict = De
     order_list = []
     for r in requests:
         supplier = db.query(User).filter(User.user_id == r.supplier_id).first()
-        s_name = supplier.business_name if supplier else "Unknown Supplier"
+        s_name = supplier.business_name if supplier else f"Supplier {r.supplier_id}"
         
         v_id = getattr(r, 'user_id', getattr(r, 'vendor_id', None))
         vendor = db.query(User).filter(User.user_id == v_id).first() if v_id else None
-        v_name = vendor.business_name if vendor else f"Vendor ({v_id})"
+        v_name = vendor.business_name if vendor else (r.vendor_name if r.vendor_name else f"Vendor {v_id}")
         
         p_name = "Unknown Product"
         if hasattr(r, 'product_name') and r.product_name:
@@ -199,26 +196,38 @@ def get_all_vendor_orders(db: Session = Depends(get_db), current_user: dict = De
 
         order_list.append({
             "id": int(r.id),
-            "vendorName": str(v_name),
-            "supplierName": str(s_name),
-            "product": p_name,
-            "quantity": int(getattr(r, 'quantity', getattr(r, 'stock', 0)) or 0),
-            "status": str(r.status).capitalize() if r.status else "Pending",
-            "requestedDate": str(getattr(r, 'requested_date', getattr(r, 'date', 'Just Now')))
+            "vendor_name": v_name,
+            "supplier_name": s_name,
+            "product_name": p_name,
+            "quantity": int(r.quantity),
+            "status": str(r.status),
+            "requested_date": str(r.created_at) if r.created_at else "N/A"
         })
-    return order_list
+    return {"status": "success", "data": order_list}
 
 @router.put("/orders/{order_id}/status")
-def admin_update_order_status(
-    order_id: int, 
-    payload: AdminOrderStatusUpdate, 
-    db: Session = Depends(get_db), 
-    current_user: dict = Depends(get_current_admin)
-):
-    order_request = db.query(VendorRequest).filter(VendorRequest.id == order_id).first()
-    if not order_request:
-        raise HTTPException(status_code=404, detail="Order request record not found")
-        
-    order_request.status = payload.status.capitalize()
+def admin_advance_order_lifecycle(order_id: int, payload: AdminOrderStatusUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_admin)):
+    if payload.status not in ["Processing", "Completed", "Rejected", "Pending", "Approved"]:
+        raise HTTPException(status_code=400, detail="Invalid status lifecycle operation state assignment.")
+
+    order = db.query(models.VendorRequest).filter(models.VendorRequest.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Target order reference tracker row missing.")
+
+    order.status = payload.status
+    
+    vendor_alert = models.Notification(
+        user_id=order.vendor_id,
+        message=f"System admin updated order reference #{order.id} for ({order.product_name}) to: {payload.status}.",
+        type="STATUS_CHANGE"
+    )
+    supplier_alert = models.Notification(
+        user_id=order.supplier_id,
+        message=f"System admin updated order reference #{order.id} for ({order.product_name}) to: {payload.status}.",
+        type="STATUS_CHANGE"
+    )
+    db.add(vendor_alert)
+    db.add(supplier_alert)
     db.commit()
-    return {"status": True, "message": "Order transaction status adjusted successfully"}
+
+    return {"status": "success", "message": f"Order tracking lifecycle advanced to {payload.status} cleanly."}

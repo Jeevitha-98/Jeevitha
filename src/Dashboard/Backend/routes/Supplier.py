@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import get_db
 import models
-from models import User, Product, VendorRequest
+from models import User, Product, VendorRequest, Notification
 
 class SupplierProfileUpdate(BaseModel):
     business_name: str | None = None
@@ -136,7 +136,6 @@ def get_stock_list(db: Session = Depends(get_db), current_user: dict = Depends(g
         return stock_list
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Stock processing failure: {str(e)}")
-
 @router.post("/products")
 async def add_product(
     name: str = Form(...),
@@ -182,41 +181,92 @@ async def add_product(
             db.commit()
             return {"id": int(new_product.id), "name": str(new_product.name), "status": "created"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Product creation failure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Product registration failure: {str(e)}")
 
-@router.get("/vendor-requests")
-def get_vendor_requests(db: Session = Depends(get_db), current_user: dict = Depends(get_current_supplier)):
-    try:
-        requests = db.query(VendorRequest).filter(VendorRequest.supplier_id == current_user["user_id"]).all()
-        response_list = []
-        for r in requests:
-            if not r: continue
-            v_id = str(getattr(r, 'vendor_id', getattr(r, 'user_id', 'Unknown ID')))
-            vendor_user = db.query(User).filter(User.user_id == v_id).first()
-            v_name = getattr(vendor_user, 'business_name', f"Vendor ({v_id})") if vendor_user else f"Vendor ({v_id})"
-            p_name = str(getattr(r, 'product_name', getattr(r, 'product', 'General Item')))
-            
-            response_list.append({
-                "id": int(r.id),
-                "vendorId": v_id,
-                "vendorName": str(v_name),
-                "productName": p_name,
-                "quantity": int(getattr(r, 'quantity', 0)),
-                "notes": str(getattr(r, 'notes', '')) if getattr(r, 'notes', None) else "",
-                "status": str(r.status) if r.status else "Pending"
-            })
-        return response_list
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Requests processing failure: {str(e)}")
+@router.get("/orders")
+def get_supplier_lifecycle_orders(db: Session = Depends(get_db), current_user: dict = Depends(get_current_supplier)):
+    query_results = db.query(
+        models.VendorRequest, 
+        models.User.business_name
+    ).outerjoin(
+        models.User, 
+        models.VendorRequest.vendor_id == models.User.user_id
+    ).filter(
+        models.VendorRequest.supplier_id == current_user["user_id"]
+    ).all()
 
-@router.put("/vendor-requests/{request_id}/status")
-def update_request_status(request_id: int, payload: VendorRequestStatusUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_supplier)):
-    request_record = db.query(VendorRequest).filter(VendorRequest.id == request_id).first()
+    result = []
+    for o, business_name in query_results:
+        result.append({
+            "id": o.id,
+            "vendor_name": business_name if business_name else (o.vendor_name or f"Vendor {o.vendor_id}"),
+            "supplier_name": "Yazh Traders (Self)",
+            "product_name": o.product_name,
+            "quantity": o.quantity,
+            "status": o.status,
+            "requested_date": str(o.created_at) if o.created_at else "2026-06-02"
+        })
+    return {"status": "success", "data": result}
 
-    if not request_record:
-        raise HTTPException(status_code=404, detail="Request not found")
 
-    request_record.status = payload.status.strip()
+@router.put("/orders/{order_id}/status")
+def update_supplier_order_state(order_id: int, payload: VendorRequestStatusUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_supplier)):
+    if payload.status not in ["Approved", "Rejected"]:
+        raise HTTPException(status_code=400, detail="Suppliers are limited to choosing Approved or Rejected status.")
+    
+    order = db.query(VendorRequest).filter(VendorRequest.id == order_id, VendorRequest.supplier_id == current_user["user_id"]).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Target order reference row missing.")
+    
+    order.status = payload.status
+
+    vendor_alert = Notification(
+        user_id=order.vendor_id,
+        message=f"Order reference #{order.id} for ({order.product_name}) has been {payload.status} by your supplier.",
+        type="STATUS_CHANGE"
+    )
+
+    db.add(vendor_alert)
     db.commit()
 
-    return {"status": True, "message": "Status updated successfully"}
+    return {
+        "status": "success",
+        "message": f"Order has been successfully moved to status: {payload.status}"
+    }
+
+@router.get("/notifications")
+def get_supplier_notifications(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_supplier)
+):
+    notifs = db.query(Notification)\
+        .filter(Notification.user_id == current_user["user_id"])\
+        .order_by(Notification.created_at.desc())\
+        .all()
+
+    return {
+        "status": "success",
+        "data": [
+            {
+                "id": n.id,
+                "message": n.message,
+                "type": n.type,
+                "is_read": n.is_read,
+                "created_at": n.created_at.isoformat()
+            }
+            for n in notifs
+        ]
+    }
+
+@router.put("/notifications/read")
+def mark_supplier_notifications_read(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_supplier)
+):
+    db.query(Notification)\
+        .filter(Notification.user_id == current_user["user_id"])\
+        .update({"is_read": True})
+
+    db.commit()
+
+    return {"status": "success"}

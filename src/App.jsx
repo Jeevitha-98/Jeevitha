@@ -944,21 +944,26 @@ import { AdminProvider } from "./Context/AdminContext";
 
 import Login from "./Dashboard/Login";
 
+// --- SUPPLIER PORTAL PAGES ---
 import SupplierLayout from "./Layout/SupplierLayout";
 import DashboardHome from "./pages/Supplier/DashboardHome";
 import StockList from "./pages/Supplier/StockList";
 import AddProduct from "./pages/Supplier/AddProduct";
 import Profile from "./pages/Supplier/Profile";
 import VendorRequests from "./pages/Supplier/VendorRequest";
+import SupplierOrders from "./pages/Supplier/OrderManagement";
 
+// --- VENDOR PORTAL PAGES ---
 import VendorLayout from "./Layout/VendorLayout";
 import VendorDashboardHome from "./pages/Vendor/DashboardHome";
 import BrowseProducts from "./pages/Vendor/BrowseProducts";
 import MyOrders from "./pages/Vendor/MyOrders";
 import RequestProduct from "./pages/Vendor/productRequest";
 import VendorProfile from "./pages/Vendor/Profile";
+import VendorOrders from "./pages/Vendor/OrderManagement";
 
-import AdminLayout from "./Layout/Adminlayout"; 
+// --- ADMIN PORTAL PAGES ---
+import AdminLayout from "./Layout/AdminLayout"; 
 import AdminDashboardHome from "./pages/Admin/DashboardHome";
 import AdminSuppliers from "./pages/Admin/Suppliers";
 import AdminVendors from "./pages/Admin/Vendor"; 
@@ -966,6 +971,8 @@ import AdminProducts from "./pages/Admin/Products";
 import AdminOrders from "./pages/Admin/Orders";
 import AdminProfile from "./pages/Admin/Profile";
 import AdminStockMonitoring from "./pages/Admin/StockMonitoring"; 
+import AdminOrdersPage from "./pages/Admin/OrderManagement";
+import AdminReports from "./pages/Admin/Reports";
 
 export default function App() {
   return (
@@ -974,54 +981,68 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
 
+        {/* --- SUPPLIER PORTAL ROUTE GROUP --- */}
         <Route 
           path="/supplier/dashboard/*" 
           element={
             <InventoryProvider>
-              <SupplierLayout />
+              <Routes>
+                <Route element={<SupplierLayout />}>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="stock-list" element={<StockList />} />
+                  <Route path="add-product" element={<AddProduct />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="vendor-request" element={<VendorRequests />} />
+                  <Route path="vendor-requests" element={<VendorRequests />} />
+                  <Route path="order-management" element={<SupplierOrders />} />
+                </Route>
+              </Routes>
             </InventoryProvider>
           }
-        >
-          <Route index element={<DashboardHome />} />
-          <Route path="stock-list" element={<StockList />} />
-          <Route path="add-product" element={<AddProduct />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="vendor-request" element={<VendorRequests />} />
-          <Route path="vendor-requests" element={<VendorRequests />} />
-        </Route>
+        />
 
+        {/* --- VENDOR PORTAL ROUTE GROUP --- */}
         <Route 
           path="/vendor/dashboard/*" 
           element={
             <VendorProvider>
-              <VendorLayout />
+              <Routes>
+                <Route element={<VendorLayout />}>
+                  <Route index element={<VendorDashboardHome />} />
+                  <Route path="browse-products" element={<BrowseProducts />} />
+                  <Route path="my-orders" element={<MyOrders />} />
+                  <Route path="request-product" element={<RequestProduct />} />
+                  <Route path="profile" element={<VendorProfile />} />
+                  <Route path="order-management" element={<VendorOrders />} />
+                </Route>
+              </Routes>
             </VendorProvider>
           }
-        >
-          <Route index element={<VendorDashboardHome />} />
-          <Route path="browse-products" element={<BrowseProducts />} />
-          <Route path="my-orders" element={<MyOrders />} />
-          <Route path="request-product" element={<RequestProduct />} />
-          <Route path="profile" element={<VendorProfile />} />
-        </Route>
+        />
 
+        {/* --- ADMIN PORTAL ROUTE GROUP --- */}
         <Route 
           path="/admin/dashboard/*" 
           element={
             <AdminProvider>
-              <AdminLayout />
+              <Routes>
+                <Route element={<AdminLayout />}>
+                  <Route index element={<AdminDashboardHome />} />
+                  <Route path="suppliers" element={<AdminSuppliers />} />
+                  <Route path="vendors" element={<AdminVendors />} />
+                  <Route path="products" element={<AdminProducts />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="stock-monitoring" element={<AdminStockMonitoring />} /> 
+                  <Route path="profile" element={<AdminProfile />} />
+                  <Route path="order-management" element={<AdminOrdersPage />} />
+                  <Route path="reports" element={<AdminReports />} />
+                </Route>
+              </Routes>
             </AdminProvider>
           }
-        >
-          <Route index element={<AdminDashboardHome />} />
-          <Route path="suppliers" element={<AdminSuppliers />} />
-          <Route path="vendors" element={<AdminVendors />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="stock-monitoring" element={<AdminStockMonitoring />} /> 
-          <Route path="profile" element={<AdminProfile />} />
-        </Route>
+        />
 
+        {/* --- LEGACY REDIRECT PATH CORES --- */}
         <Route path="/pages/Supplier/DashboardHome" element={<Navigate to="/supplier/dashboard" replace />} />
         <Route path="/pages/Supplier/StockList" element={<Navigate to="/supplier/dashboard/stock-list" replace />} />
         <Route path="/pages/Supplier/AddProduct" element={<Navigate to="/supplier/dashboard/add-product" replace />} />

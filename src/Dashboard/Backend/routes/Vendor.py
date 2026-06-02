@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import get_db
 import models
-from models import User, Product, VendorRequest
+from models import User, Product, VendorRequest, Notification
 
 class VendorProfileUpdate(BaseModel):
     business_name: str | None = None
@@ -23,11 +23,14 @@ class PasswordUpdateRequest(BaseModel):
     old_password: str
     new_password: str
 
-class CreateProductRequest(BaseModel):
+class CreateOrderPayload(BaseModel):
     supplier_id: str
     product_name: str
     quantity: int
-    notes: str | None = None
+    notes: str | None = ""
+
+class VendorRequestStatusUpdate(BaseModel):
+    status: str
 
 router = APIRouter(prefix="/vendor", tags=["Vendor Operations"])
 
@@ -57,15 +60,18 @@ def get_current_vendor(credentials: HTTPAuthorizationCredentials = Depends(secur
 
 @router.get("/metrics")
 def get_vendor_metrics(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
-    vendor_id = current_user["user_id"]
-    total_available = db.query(Product).count()
-    my_orders_count = db.query(VendorRequest.id).filter(VendorRequest.vendor_id == vendor_id, VendorRequest.status == "Accepted").count()
-    pending_count = db.query(VendorRequest.id).filter(VendorRequest.vendor_id == vendor_id, VendorRequest.status == "Pending").count()
-    return {
-        "totalAvailableProducts": int(total_available), 
-        "myOrders": int(my_orders_count), 
-        "pendingRequests": int(pending_count)
-    }
+    try:
+        vendor_id = current_user["user_id"]
+        total_available = db.query(Product).count()
+        my_orders_count = db.query(VendorRequest.id).filter(VendorRequest.vendor_id == vendor_id, VendorRequest.status == "Accepted").count()
+        pending_count = db.query(VendorRequest.id).filter(VendorRequest.vendor_id == vendor_id, VendorRequest.status == "Pending").count()
+        return {
+            "totalAvailableProducts": int(total_available), 
+            "myOrders": int(my_orders_count), 
+            "pendingRequests": int(pending_count)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Metrics processing failure: {str(e)}")
 
 @router.get("/profile")
 def get_vendor_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
@@ -140,94 +146,85 @@ def browse_all_products(db: Session = Depends(get_db), current_user: dict = Depe
 @router.get("/orders")
 def get_vendor_orders(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
     vendor_id = current_user["user_id"]
-    rows = db.query(
-        VendorRequest.id,
-        VendorRequest.supplier_id,
-        VendorRequest.product_name,
-        VendorRequest.quantity,
-        VendorRequest.status,
-        VendorRequest.notes,
-        User.business_name,
-        Product.image
+    query_results = db.query(
+        VendorRequest,
+        User.business_name
     ).outerjoin(User, VendorRequest.supplier_id == User.user_id)\
-     .outerjoin(Product, VendorRequest.product_name == Product.name)\
-     .filter(
-        VendorRequest.vendor_id == vendor_id, 
-        VendorRequest.status == "Accepted"
-    ).all()
+     .filter(VendorRequest.vendor_id == vendor_id).all()
     
     response_list = []
-    for r_id, s_id, p_name, qty, stat, notes, b_name, p_img in rows:
+    for o, business_name in query_results:
         response_list.append({
-            "id": int(r_id),
-            "supplier_id": str(s_id),
-            "supplier_name": str(b_name) if b_name else str(s_id),
-            "product": str(p_name),
-            "quantity": int(qty),
-            "status": str(stat),
-            "notes": str(notes) if notes else "",
-            "image": str(p_img) if p_img else "",
-            "requested_date": None
+            "id": o.id,
+            "vendor_name": "My Business Portal",
+            "supplier_name": business_name if business_name else f"Supplier {o.supplier_id}",
+            "product_name": o.product_name,
+            "quantity": o.quantity,
+            "status": o.status,
+            "requested_date": str(o.created_at) if o.created_at else "2026-06-02"
         })
-    return response_list
+    return {"status": "success", "data": response_list}
 
-@router.get("/product-requests")
-def get_vendor_product_requests(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
+@router.post("/orders")
+def create_vendor_order_request(payload: CreateOrderPayload, db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
     vendor_id = current_user["user_id"]
     
-    # ✅ FIXED: Re-mapped 'VendorRequest.user_id' parameter trace down to 'VendorRequest.vendor_id' properties model definitions mapping keys
-    rows = db.query(
-        VendorRequest.id,
-        VendorRequest.vendor_id,
-        VendorRequest.product_name,
-        VendorRequest.quantity,
-        VendorRequest.status,
-        VendorRequest.supplier_id,
-        VendorRequest.notes,
-        User.business_name,
-        Product.image
-    ).outerjoin(User, VendorRequest.supplier_id == User.user_id)\
-     .outerjoin(Product, VendorRequest.product_name == Product.name)\
-     .filter(
-        VendorRequest.vendor_id == vendor_id
-    ).all()
+    vendor_profile = db.query(User).filter(User.user_id == vendor_id).first()
+    v_name = vendor_profile.business_name if vendor_profile else f"Vendor {vendor_id}"
     
-    response_list = []
-    for r_id, v_id, p_name, qty, stat, s_id, notes, b_name, p_img in rows:
-        response_list.append({
-            "id": int(r_id),
-            "vendor_id": str(v_id),
-            "vendor_name": "Vendor Portal",
-            "product": str(p_name),
-            "quantity": int(qty),
-            "status": str(stat),
-            "supplier_id": str(s_id),
-            "supplier_name": str(b_name) if b_name else str(s_id),
-            "notes": str(notes) if notes else "",
-            "image": str(p_img) if p_img else "",
-            "requested_date": None
-        })
-    return response_list
+    new_request = VendorRequest(
+        vendor_id=vendor_id,
+        vendor_name=v_name,
+        product_name=payload.product_name,
+        quantity=payload.quantity,
+        status="Pending",
+        supplier_id=payload.supplier_id,
+        notes=payload.notes,
+        created_at=datetime.now().strftime("%Y-%m-%d %H:%M")
+    )
+    db.add(new_request)
+    db.commit()
+    db.refresh(new_request)
+    
+    supplier_alert = Notification(
+        user_id=payload.supplier_id,
+        message=f"New incoming component procurement request line submitted by {v_name}.",
+        type="NEW_REQUEST"
+    )
+    db.add(supplier_alert)
+    db.commit()
+    return {"status": "success", "message": "Procurement requested line registered cleanly."}
 
-@router.post("/product-requests")
-def create_procurement_request(payload: CreateProductRequest, db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
-    try:
-        vendor_id = current_user["user_id"]
+@router.put("/orders/{order_id}/status")
+def update_vendor_order_cancellation(order_id: int, payload: VendorRequestStatusUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
+    if payload.status != "Rejected":
+        raise HTTPException(status_code=400, detail="Vendors are restricted to choosing Rejected status to perform cancel operations.")
         
-        # ✅ FIXED: Synced operational object fields down to 'vendor_id' fields mapping parameters
-        new_request = VendorRequest(
-            vendor_id=vendor_id,
-            supplier_id=payload.supplier_id,
-            product_name=payload.product_name,
-            quantity=payload.quantity,
-            status="Pending",
-            notes=payload.notes
-        )
-        db.add(new_request)
-        db.commit()
-        db.refresh(new_request)
+    order = db.query(VendorRequest).filter(VendorRequest.id == order_id, VendorRequest.vendor_id == current_user["user_id"]).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Requisition record tracker row not discoverable.")
         
-        return {"status": True, "message": "Procurement request submitted successfully", "id": new_request.id}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database procurement transaction failure: {str(e)}")
+    order.status = "Rejected"
+    
+    supplier_alert = Notification(
+        user_id=order.supplier_id,
+        message=f"Procurement request line reference #{order.id} has been explicitly cancelled by the requesting vendor.",
+        type="STATUS_CHANGE"
+    )
+    db.add(supplier_alert)
+    db.commit()
+    return {"status": "success", "message": "Order tracking lifecycle cancelled successfully."}
+
+@router.get("/notifications")
+def get_vendor_notifications(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
+    notifs = db.query(Notification).filter(Notification.user_id == current_user["user_id"]).order_by(Notification.created_at.desc()).all()
+    return {
+        "status": "success", 
+        "data": [{"id": n.id, "message": n.message, "type": n.type, "is_read": n.is_read, "created_at": n.created_at.isoformat()} for n in notifs]
+    }
+
+@router.put("/notifications/read")
+def mark_vendor_notifications_read(db: Session = Depends(get_db), current_user: dict = Depends(get_current_vendor)):
+    db.query(Notification).filter(Notification.user_id == current_user["user_id"]).update({"is_read": True})
+    db.commit()
+    return {"status": "success"}
