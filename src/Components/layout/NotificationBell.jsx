@@ -1,15 +1,27 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo, useEffect, useRef } from 'react';
 import { NotificationContext } from './NotificationContext';
 
 export default function NotificationBell() {
   const { notifications, unreadCount, markAllAsRead, loading } = useContext(NotificationContext);
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   const safeNotifications = useMemo(() => {
     return Array.isArray(notifications) ? notifications : [];
   }, [notifications]);
 
-  // Color map markers to visually anchoring alert types for faster dashboard scannability
+  // ✅ FIXED: Auto-closes the window context smoothly when clicking anywhere outside of the bell area
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Color map markers to visually anchor alert types for faster dashboard scannability
   const getTypeStyles = (type) => {
     switch (type) {
       case 'LOW_STOCK': return { borderLeft: '4px solid #ef4444', iconColor: '#ef4444' };
@@ -19,9 +31,14 @@ export default function NotificationBell() {
   };
 
   return (
-    <div style={styles.container}>
+    <div ref={dropdownRef} style={styles.container}>
       {/* Read / Unread Status Badge Counter Icon */}
-      <div style={styles.iconWrap} onClick={() => setShowDropdown(!showDropdown)}>
+      <div 
+        style={styles.iconWrap} 
+        onClick={() => setShowDropdown(!showDropdown)}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+      >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -37,7 +54,12 @@ export default function NotificationBell() {
           <div style={styles.dropHeader}>
             <h4 style={styles.headerText}>Activity Logs Notification Bar</h4>
             {unreadCount > 0 && (
-              <span style={styles.markRead} onClick={markAllAsRead}>
+              <span 
+                style={styles.markRead} 
+                onClick={markAllAsRead}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#1d4ed8'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#3b82f6'}
+              >
                 Mark all read
               </span>
             )}
@@ -49,7 +71,12 @@ export default function NotificationBell() {
               safeNotifications.map((n) => {
                 const badgeConfig = getTypeStyles(n.type);
                 return (
-                  <div key={n.id} style={{ ...styles.alertRow, ...badgeConfig, backgroundColor: n.unread ? '#f8fafc' : '#ffffff' }}>
+                  <div 
+                    key={n.id} 
+                    style={{ ...styles.alertRow, ...badgeConfig, backgroundColor: n.unread ? '#f8fafc' : '#ffffff' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = n.unread ? '#f1f5f9' : '#fafafa'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = n.unread ? '#f8fafc' : '#ffffff'}
+                  >
                     <div style={styles.dotWrap}>
                       {n.unread && <span style={styles.unreadDot} />}
                     </div>
@@ -75,15 +102,15 @@ const styles = {
   container: { position: 'relative', display: 'inline-block', fontFamily: "'Inter', sans-serif" },
   iconWrap: { position: 'relative', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' },
   badge: { position: 'absolute', top: '2px', right: '2px', backgroundColor: '#ef4444', color: '#ffffff', fontSize: '10px', fontWeight: 'bold', borderRadius: '10px', minWidth: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', boxSizing: 'border-box' },
-  dropdown: { position: 'absolute', top: '46px', right: '0', width: '340px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', zIndex: 1000, overflow: 'hidden' },
-  dropHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff' },
-  headerText: { margin: 0, fontSize: '14px', fontWeight: 600, color: '#1e293b' },
-  markRead: { fontSize: '12px', color: '#3b82f6', cursor: 'pointer', fontWeight: 500, userSelect: 'none' },
-  listWrap: { maxHeight: '320px', overflowY: 'auto' },
-  alertRow: { display: 'flex', gap: '10px', padding: '12px 16px', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' },
+  dropdown: { position: 'absolute', top: '46px', right: '0', width: '360px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)', zIndex: 99999, overflow: 'hidden' },
+  dropHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff' },
+  headerText: { margin: 0, fontSize: '14px', fontWeight: 600, color: '#1e293b', letterSpacing: '-0.01em' },
+  markRead: { fontSize: '12px', color: '#3b82f6', cursor: 'pointer', fontWeight: 600, userSelect: 'none', transition: 'color 0.15s' },
+  listWrap: { maxHeight: '340px', overflowY: 'auto' },
+  alertRow: { display: 'flex', gap: '10px', padding: '14px 16px', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s ease' },
   dotWrap: { display: 'flex', alignItems: 'center', minWidth: '8px' },
   unreadDot: { width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' },
-  alertText: { margin: '0 0 4px 0', fontSize: '13px', color: '#334155', lineHeight: '1.45', fontWeight: 500 },
-  alertTime: { fontSize: '11px', color: '#94a3b8' },
-  emptyText: { margin: 0, padding: '24px', fontSize: '13px', color: '#64748b', textAlign: 'center' }
+  alertText: { margin: '0 0 4px 0', fontSize: '13px', color: '#334155', lineHeight: '1.45', fontWeight: 500, letterSpacing: '-0.005em' },
+  alertTime: { fontSize: '11px', color: '#94a3b8', fontWeight: '500' },
+  emptyText: { margin: 0, padding: '32px 20px', fontSize: '13px', color: '#64748b', textAlign: 'center' }
 };

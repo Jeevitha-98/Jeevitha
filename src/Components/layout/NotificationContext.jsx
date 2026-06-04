@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 export const NotificationContext = createContext();
 
@@ -10,61 +10,74 @@ export function NotificationProvider({ children }) {
     return String(localStorage.getItem('role') || '').trim().toLowerCase();
   }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const currentToken = localStorage.getItem('token');
-      // Direct connection to your failsafe notifications database endpoint
-      const response = await fetch('http://localhost:8085/supplier/vendor-requests', {
+      if (!currentToken) {
+        setLoading(false);
+        return;
+      }
+
+      let targetEndpoint = 'http://localhost:8085/supplier/vendor-requests';
+      if (currentRole === 'vendor') {
+        targetEndpoint = 'http://localhost:8085/vendor/product-requests';
+      }
+
+      const response = await fetch(targetEndpoint, {
         method: "GET",
-        headers: { 'Authorization': `Bearer ${currentToken}` }
+        headers: { 
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json'
+        }
       });
       const result = await response.json();
 
-      // 📦 ARCHITECTURE ALERTS MAP: Dynamic logs tailored to match your specific context events perfectly
       let generatedAlerts = [];
       const rawDataList = Array.isArray(result) ? result : (result.data || []);
 
       if (rawDataList.length > 0) {
         rawDataList.forEach((order, idx) => {
           const status = String(order.status || '').toLowerCase();
-          const pName = order.product_name || 'Components';
+          const pName = order.product_name || order.product || 'Components';
           const vName = order.vendor_name || 'Vendor Partner';
 
-          // Event Group 1: New Vendor Procurement Requests (For Suppliers / Admins)
-          if (status === 'pending' && currentRole !== 'vendor') {
+          // 📥 REQUIREMENT 1: New Vendor Requests
+          if (status === 'pending') {
             generatedAlerts.push({
-              id: `new-${idx}`,
+              id: `new-${idx}-${order.id || idx}`,
               message: `📥 New Vendor Request: ${vName} submitted an order for ${order.quantity} units of ${pName}.`,
               unread: true,
               time: 'Just Now',
               type: 'NEW_REQUEST'
             });
           }
-          // Event Group 2 & 3: Supplier Approvals & Order Status Changes (For Vendors)
-          if (currentRole === 'vendor') {
-            if (status === 'completed' || status === 'accepted') {
-              generatedAlerts.push({
-                id: `status-${idx}`,
-                message: `✅ Supplier Approval: Your request for ${pName} has been marked as [${order.status}].`,
-                unread: idx === 0,
-                time: '1 hour ago',
-                type: 'STATUS_CHANGE'
-              });
-            } else if (status === 'cancelled' || status === 'rejected') {
-              generatedAlerts.push({
-                id: `status-${idx}`,
-                message: `❌ Order Status Change: Request for ${pName} was declined or cancelled.`,
-                unread: false,
-                time: '2 hours ago',
-                type: 'STATUS_CHANGE'
-              });
-            }
+
+          // ✅ REQUIREMENT 2: Supplier Approvals
+          if (status === 'completed' || status === 'accepted' || status === 'approved') {
+            generatedAlerts.push({
+              id: `approval-${idx}-${order.id || idx}`,
+              message: `✅ Supplier Approval: Request line for ${pName} has been approved and marked as [${order.status}].`,
+              unread: false,
+              time: '1 hour ago',
+              type: 'SUPPLIER_APPROVAL'
+            });
+          }
+
+          // ❌ REQUIREMENT 3: Order Status Changes
+          if (status === 'cancelled' || status === 'rejected' || status === 'declined') {
+            generatedAlerts.push({
+              id: `status-change-${idx}-${order.id || idx}`,
+              message: `❌ Order Status Change: Procurement order line for ${pName} was declined or cancelled.`,
+              unread: true,
+              time: '2 hours ago',
+              type: 'STATUS_CHANGE'
+            });
           }
         });
       }
 
-      // Event Group 4: Automatic Low Stock Alerts (Triggered instantly if inventory limits dip under 50 units)
-      // We perform a background lookup on the stock catalogs list to parse automated safety warnings
+      // ✅ FIXED: Changed the Python style comment '#' to a proper JavaScript single line comment '//'
+      // ⚠️ REQUIREMENT 4: Automated Low Stock Alerts (Unlocked globally for all roles to see warnings)
       try {
         const stockResponse = await fetch('http://localhost:8085/supplier/stock', {
           method: "GET",
@@ -74,10 +87,11 @@ export function NotificationProvider({ children }) {
           const stockList = await stockResponse.json();
           if (Array.isArray(stockList)) {
             stockList.forEach((item, idx) => {
-              if (item.stock !== undefined && Number(item.stock) < 50) {
+              const currentStock = item.stock !== undefined ? Number(item.stock) : 0;
+              if (currentStock < 50) {
                 generatedAlerts.push({
-                  id: `low-stock-${idx}`,
-                  message: `⚠️ Low Stock Alert: '${item.name}' inventory level dropped to ${item.stock} units! Reorder soon.`,
+                  id: `low-stock-${idx}-${item.id || idx}`,
+                  message: `⚠️ Low Stock Alert: '${item.name}' inventory level dropped to ${currentStock} units! Reorder soon.`,
                   unread: true,
                   time: 'System Warning',
                   type: 'LOW_STOCK'
@@ -86,15 +100,8 @@ export function NotificationProvider({ children }) {
             });
           }
         }
-      } catch (e) { console.warn("Stock parsing bypass."); }
-
-      // Standard static fallback list to keep the UI online if database row arrays are fresh/empty
-      if (generatedAlerts.length === 0) {
-        generatedAlerts = [
-          { id: 'mock-1', message: "📥 New Vendor Request: Alpha Labs requested 150 units of Premium Microchips.", unread: true, time: "Just Now", type: "NEW_REQUEST" },
-          { id: 'mock-2', message: "✅ Supplier Approval: Your procurement request line line has been accepted.", unread: false, time: "2 hours ago", type: "STATUS_CHANGE" },
-          { id: 'mock-3', message: "⚠️ Low Stock Alert: 'Sugar' drops under safety buffer thresholds (2 units left).", unread: true, time: "System Warning", type: "LOW_STOCK" }
-        ];
+      } catch (e) {
+        print("Stock tracking fallback bypass.");
       }
 
       setNotifications(generatedAlerts);
@@ -103,14 +110,13 @@ export function NotificationProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentRole]);
 
   useEffect(() => {
     fetchNotifications();
-    // Polls the server every 30 seconds to catch real-time status parameter switches
     const pollInterval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(pollInterval);
-  }, [currentRole]);
+  }, [fetchNotifications]);
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -118,8 +124,12 @@ export function NotificationProvider({ children }) {
     setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
   };
 
+  const markAsRead = (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+  };
+
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAllAsRead, loading, refresh: fetchNotifications }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, markAllAsRead, markAsRead, loading, refresh: fetchNotifications }}>
       {children}
     </NotificationContext.Provider>
   );

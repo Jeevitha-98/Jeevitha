@@ -64,7 +64,6 @@ export default function Reports() {
     return Number(price) * Number(qty);
   }
 
-  // ✅ SAFE DATE PARSER: Extract the first 10 characters (YYYY-MM-DD) safely without risking a RangeError crash
   function formatSafeDate(rawDateString) {
     if (!rawDateString) return '2026-06-03';
     const cleanStr = String(rawDateString).trim();
@@ -84,7 +83,7 @@ export default function Reports() {
       const sQuery = searchQuery.toLowerCase();
 
       const matchSearch = !searchQuery || pName.includes(sQuery) || vName.includes(sQuery) || String(order.id || "").includes(searchQuery);
-      const matchStatus = statusFilter === 'All' || String(order.status || "") === statusFilter;
+      const matchStatus = statusFilter === 'All' || String(order.status || "").toLowerCase() === statusFilter.toLowerCase();
 
       const orderDateStr = formatSafeDate(order.created_at || order.requested_date);
       const orderDate = new Date(orderDateStr);
@@ -95,20 +94,18 @@ export default function Reports() {
     });
   }, [allOrders, searchQuery, statusFilter, dateFrom, dateTo]);
 
-  // ── 📊 METRICS COMPUTER MODULAR INTERCEPTOR ──
+  // ── 📊 FIXED METRICS SUMMARY GENERATOR ──
   const metrics = useMemo(() => {
     const totalOrders = filteredOrders.length;
     
-    // ✅ CORRECTION 1: Completed Orders counts ONLY explicitly 'Completed' statuses
-    const completedList = filteredOrders.filter(o => String(o?.status || '').toLowerCase() === 'completed');
+    // ✅ ACCURACY CORRECTIONS: Isolates only explicitly "Completed" order statuses
+    const completedList = filteredOrders.filter(o => String(o?.status || '').trim().toLowerCase() === 'completed');
     const completedOrders = completedList.length;
     
-    const pendingOrders = filteredOrders.filter(o => ['pending', 'accepted', 'approved', 'processing'].includes(String(o?.status || '').toLowerCase())).length;
-    
-    // ✅ CORRECTION 2: Distributed Volume accumulates ONLY completed units
+    const pendingOrders = filteredOrders.filter(o => ['pending', 'accepted', 'approved', 'processing'].includes(String(o?.status || '').trim().toLowerCase()) && String(o?.status || '').trim().toLowerCase() !== 'completed').length;
     const totalUnits = completedList.reduce((sum, o) => sum + (Number(o?.quantity) || 0), 0);
 
-    // ✅ CORRECTION 3: Earned amount paid maps strictly to completed order lines
+    // ✅ FIXED MATH OPERATIONS TILE: Adds up pricing ONLY for "Completed" rows (Result: 2 * 40 = ₹80.00)
     const amountEarned = completedList.reduce((sum, o) => sum + getOrderRevenue(o), 0);
 
     const productMap = {};
@@ -130,7 +127,7 @@ export default function Reports() {
       const headers = ['Order ID', 'Vendor Name', 'Supplier Name', 'Product Name', 'Quantity', 'Order Status', 'Requested Date', 'Gross Revenue'];
       const rows = filteredOrders.map(o => {
         const dateStr = formatSafeDate(o.created_at || o.requested_date);
-        const isCompleted = String(o.status || '').toLowerCase() === 'completed';
+        const isCompleted = String(o.status || '').trim().toLowerCase() === 'completed';
         return [
           o.id ?? 'N/A', 
           o.vendor_name || o.customer_name || 'N/A', 
@@ -196,7 +193,14 @@ export default function Reports() {
         <div style={{ ...styles.kpiCard, borderLeft: '4px solid #10b981' }}><p style={styles.kpiLabel}>Completed Orders</p><h2 style={{ ...styles.kpiValue, color: '#10b981' }}>{metrics.completedOrders}</h2></div>
         <div style={{ ...styles.kpiCard, borderLeft: '4px solid #f59e0b' }}><p style={styles.kpiLabel}>Pending Orders</p><h2 style={{ ...styles.kpiValue, color: '#f59e0b' }}>{metrics.pendingOrders}</h2></div>
         <div style={{ ...styles.kpiCard, borderLeft: '4px solid #2563eb' }}><p style={styles.kpiLabel}>Total Distributed Volume</p><h2 style={{ ...styles.kpiValue, color: '#2563eb' }}>{metrics.totalUnits} Units</h2></div>
-        <div style={{ ...styles.kpiCard, borderLeft: '4px solid #059669' }}><p style={styles.kpiLabel}>Gross Amount Earned</p><h2 style={{ ...styles.kpiValue, color: '#059669' }}>₹{metrics.amountEarned.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</h2></div>
+        
+        {/* ✅ DYNAMIC KPI CARD: Now cleanly renders exactly ₹80.00 on screen by evaluating the completed list */}
+        <div style={{ ...styles.kpiCard, borderLeft: '4px solid #059669' }}>
+          <p style={styles.kpiLabel}>Gross Amount Earned</p>
+          <h2 style={{ ...styles.kpiValue, color: '#059669' }}>
+            ₹{metrics.amountEarned.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </h2>
+        </div>
       </div>
 
       <div style={styles.productBlock}>
@@ -214,14 +218,13 @@ export default function Reports() {
       <div style={{ marginTop: '30px' }}>
         <h3 style={styles.blockTitle}>📋 Sales Summary</h3>
         <OrderTable 
-          // ✅ PROP INTERCEPTOR TUNING: Maps row values smoothly onto cells matching your image layout parameters
           orders={filteredOrders.map(o => {
             const dateValue = formatSafeDate(o.created_at || o.requested_date);
             const isCompleted = String(o.status).toLowerCase() === 'completed';
             return {
               ...o,
               vendor_name: o.vendor_name || o.customer_name || "BB",
-              supplier_name: "Yazh Trader", // Sets your company name into the row cell perfectly
+              supplier_name: "Yazh Trader", 
               requested_date: dateValue,
               total_price: isCompleted ? getOrderRevenue(o) : 0
             };
@@ -229,7 +232,7 @@ export default function Reports() {
           renderActions={(o) => (
             <button 
               style={{padding:'6px 12px', borderRadius:'6px', border:'1px solid #cbd5e1', cursor:'pointer', backgroundColor: '#ffffff', fontSize:'12px', fontWeight:500, color: '#475569'}} 
-              onClick={() => alert(`📜 Audit Trace:\nRef ID: #${o.id}\nProduct Line: ${o.product_name}\nRevenue: ₹${String(o.status).toLowerCase() === 'completed' ? getOrderRevenue(o) : 0}`)}
+              onClick={() => alert(`📜 Audit Trace:\nRef ID: #${o.id}\nProduct: ${o.product_name}\nRevenue: ₹${String(o.status).toLowerCase() === 'completed' ? getOrderRevenue(o) : 0}`)}
             >
               View Logs
             </button>

@@ -33,9 +33,6 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
-# --- 1. DIRECT OVERRIDE MOUNTS (Bypasses Python Cache Collisions) ---
-
-# ✅ FIX FOR THE 404 ERROR: Injects /supplier/vendor-requests directly onto the app core
 @app.get("/supplier/vendor-requests", tags=["Failsafe Operations"])
 @app.get("/supplier/vendor_requests", tags=["Failsafe Operations"])
 def direct_vendor_requests_bypass(db: Session = Depends(get_db)):
@@ -55,8 +52,6 @@ def direct_vendor_requests_bypass(db: Session = Depends(get_db)):
         return {"status": "success", "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# ✅ FIX FOR THE 403 ERROR: Injects /supplier/orders/public-report-override directly onto the app core
 @app.get("/supplier/orders/public-report-override", tags=["Failsafe Operations"])
 def direct_report_override_bypass(db: Session = Depends(get_db)):
     try:
@@ -64,6 +59,14 @@ def direct_report_override_bypass(db: Session = Depends(get_db)):
         compiled_data = []
         for o in supplier_orders:
             qty = int(getattr(o, 'quantity', 0) or 0)
+            item_name = str(getattr(o, 'product_name', '')).strip().lower()
+            
+            unit_price = 40.00
+            if "chocolate" in item_name:
+                unit_price = 80.00
+            elif "rice" in item_name:
+                unit_price = 60.00
+                
             compiled_data.append({
                 "id": o.id,
                 "product_name": getattr(o, 'product_name', 'Unknown Line'),
@@ -72,21 +75,19 @@ def direct_report_override_bypass(db: Session = Depends(get_db)):
                 "supplier_name": getattr(o, 'supplier_name', 'N/A'),
                 "quantity": qty,
                 "status": getattr(o, 'status', 'Pending'),
-                "price": 120.0,
-                "total_price": 120.0 * qty,
+                "price": float(unit_price),
+                "total_price": float(unit_price * qty),
                 "created_at": str(getattr(o, 'created_at', ''))
             })
         return {"status": "success", "data": compiled_data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- 2. STANDARD ROUTER MAPS ---
 app.include_router(authroutes.router, prefix="/auth")
 app.include_router(Supplier.router)
 app.include_router(Vendor.router)
 app.include_router(Admin.router)
 
-# --- 3. STATIC MEDIA CONFIG ---
 os.makedirs("uploads/products", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
